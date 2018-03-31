@@ -15,7 +15,6 @@ class WeatherMainVC: UIViewController, CLLocationManagerDelegate {
     @IBOutlet var tempLbl: UILabel!
     @IBOutlet var cityLbl: UILabel!
     @IBOutlet var getBtn: UIButton!
-    @IBOutlet var imgBgMain: UIImageView!
     @IBOutlet var tmpMaxLbl: UILabel!
     @IBOutlet var tmpMinLbl: UILabel!
     
@@ -31,12 +30,16 @@ class WeatherMainVC: UIViewController, CLLocationManagerDelegate {
     @IBOutlet var pressLbl: UILabel!
     @IBOutlet var windLbl: UILabel!
     @IBOutlet var humLbl: UILabel!
-   
+    
     @IBOutlet var weekTableView: UITableView!
+    
+    @IBOutlet var viewRootView: UIView!
+    @IBOutlet var viewBgImage: UIImageView!
+    
     
     @IBOutlet var activityIndicator: UIActivityIndicatorView!
     
-    let TAG = "**ViewCtrl::: "
+    let TAG = "**WeatherMainVC::: "
     
     let weather = WeatherService()
     let locationMgr =  CLLocationManager()
@@ -51,7 +54,7 @@ class WeatherMainVC: UIViewController, CLLocationManagerDelegate {
     
     weak var timer:Timer?
     
-   // weak var countDownTimer:Timer?
+    // weak var countDownTimer:Timer?
     var seconds:Int = 0
     
     
@@ -102,19 +105,42 @@ class WeatherMainVC: UIViewController, CLLocationManagerDelegate {
     }
     
     func setBackgrndImage(){
+        
+        //iPhone 7 native: 750 x 1334px
+        //bg image 100%
+        
         let date = Date()
         let cal = Calendar.current
-        let month = cal.component(.month, from: date)
+        let hour = cal.component(.hour, from: date)
         
-        var img: UIImage?
-        if (month<5||month>10) {
-            img=UIImage(named: "bg_winter")
+        print(TAG+"hour=",hour)
+        
+        var color:UIColor?
+        
+        if (hour>6&&hour<18) {
+            color=UIColor(red:50/255,green:180/255,blue:240/255, alpha:1)
+            print(TAG+"daytime!")
+            
         }else{
-            img=UIImage(named: "bg_summer")
+            color=UIColor(red:15/255,green:40/255,blue:70/255, alpha:1)
+            print(TAG+"night!")
+            
         }
         
-        if (img != nil) {
-            imgBgMain.image = img
+        //
+        //        var img: UIImage?
+        //        if (hour>6&&hour<18) {
+        //            img=UIImage(named: "bg_blue_sky_clouds")
+        //        }else{
+        //            img=UIImage(named: "bg_night_sky_stars")
+        //        }
+        
+        if (color != nil) {
+            //bgPhotoView.image = img
+            
+            // color=UIColor.blue
+            viewRootView.backgroundColor=color!
+            print(TAG+"color:",color!)
         }
     }
     
@@ -143,7 +169,7 @@ class WeatherMainVC: UIViewController, CLLocationManagerDelegate {
     
     func stopTimer(){
         timer?.invalidate()
-       // countDownTimer?.invalidate()
+        // countDownTimer?.invalidate()
         print("timer stop")
     }
     
@@ -199,13 +225,13 @@ class WeatherMainVC: UIViewController, CLLocationManagerDelegate {
             }
             
             if self.currentCity.characters.count>3 && self.country.characters.count>1 {
-
-                    print(self.TAG+"**  ->reverseGeocodeLocation() -> ASYNC COMPLETED...")
-                    //current ASYNCtask completed, now do weather task:
+                
+                print(self.TAG+"**  ->reverseGeocodeLocation() -> ASYNC COMPLETED...")
+                //current ASYNCtask completed, now do weather task:
                 self.weather.getWeather(city: self.currentCity, country: self.country, completion: {self.onWeatherDataReceived()})
-                }else{
-                    self.msg = "No data available"
-                }
+            }else{
+                self.msg = "No data available"
+            }
             
             print("**.isBusy:: ",self.isBusy)
             //END OF ASYNC TASK
@@ -239,7 +265,7 @@ class WeatherMainVC: UIViewController, CLLocationManagerDelegate {
             
             self.windLbl.text = " "+String(format: "%.0f", self.weather.cWindSpeed)+" km/h \n wind"
             self.imgIconMain.image = UIImage(named: self.weather.mainIcon)
-       
+            
             self.weekTableView.reloadData()
         }
         
@@ -339,26 +365,12 @@ extension WeatherMainVC: UITableViewDataSource,UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-       // var cell:WeatherTableCell?
-       
         let cell = tableView.dequeueReusableCell(withIdentifier: "week_cell") as! WeatherTableCell
         
-//        if cell==nil {
-//            cell = tableView.cellForRow(at: indexPath) as! WeatherTableCell?
-//            
-//            cell?.weekDayLbl.text = "day"+String(indexPath.row)
-//            cell?.weekIconImg.image = UIImage(named: "bg_summer")
-//            return cell!
-//            
-//        }else{
-//        
-//            cell?.weekDayLbl.text = "day"+String(indexPath.row)
-//            cell?.weekIconImg.image = UIImage(named: "bg_summer")
-        //cell?.backgroundView?.backgroundColor=UIColor.clear
-    //}
-    
-        cell.weekDayLbl.text = weather.yqlForecastArray[indexPath.row].day
-        cell.weekPrecipLbl.text = String(weather.yqlForecastArray[indexPath.row].textDescr)
+        
+        cell.weekDayLbl.text = getDayFromDate(dateStr: weather.yqlForecastArray[indexPath.row].dateStr)
+        
+        cell.weekPrecipLbl.text = String(weather.yqlForecastArray[indexPath.row].dateStr)
         cell.weekTempMaxLbl.text = String(weather.yqlForecastArray[indexPath.row].tempHigh)
         cell.weekTempMinLbl.text = String(weather.yqlForecastArray[indexPath.row].tempLow)
         cell.weekIconImg.image = UIImage(named: "ic_sun")
@@ -371,6 +383,27 @@ extension WeatherMainVC: UITableViewDataSource,UITableViewDelegate {
         
         //cell.textLabel!.text = "path:"+String(indexPath.row)
         //cell.backgroundColor=UIColor.clear
+    }
+    
+    func getDayFromDate(dateStr:String)->String{
+        
+        let df = DateFormatter()
+        df.dateFormat = "dd MM yyyy"
+        df.locale = Locale(identifier: "en_US_POSIX")
+        if let inDate = df.date(from: dateStr) {
+            df.dateFormat="EEEE"
+            return df.string(from: inDate)}
+        else {
+            return ""
+        }
+        
+        //        let c = Calendar.current
+        //        let components = c.component(.weekday, from: inDate)
+        //        let weekDay = components.weekday
+        //
+        //        print(weekDay)
+        //        return weekDay
+        
     }
 }
 
