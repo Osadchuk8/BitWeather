@@ -11,88 +11,40 @@ import Foundation
 class WeatherService {
     
     public var isMetric:Bool = true
-    public var unitToken = ""
+    public var unitTemp = ""
+    public var unitDist = ""
     
     public var currentTemp:Float = 0
+    public var currentCode:Int = 0
     public var cityName:String = ""
-    public var maxTemp:Float = 0
-    public var minTemp:Float = 0
+    public var maxTemp = 0
+    public var minTemp = 0
     public var description:String = ""
+
+   // public var cPrecip:String = "" unavailable
+    public var cWindChill:Float = -1
+    public var cHumidity:Int = -1
+    public var cVisibility:Float = -1
+    public var cPressure:Float = -1
+    public var cWindSpeed:Float = -1
+    public var cWindDir:Float = -1
+    public var cWindCardinal:String = "calm"
     
-    public var cHumidity:Int=0
-    public var cPressure:Float=0
-    public var cPrecip:String = ""
-    public var cWindSpeed:Float = 0
-    public var cWindDir:Float = 0
     
     public var yqlForecastArray = [DailyForecast]()
     
     public var codeId:String = ""
     //private var iconArray:Array<String>
-    public var mainIcon:String = ""
+    public var picWeatherMain:String = ""
     
     
     // TODO shared config
-    private let openWeatherMapBaseURL = "http://api.openweathermap.org/data/2.5/forecast"
-    private let openWeatherMapAPIKey = "0d99e987169ff4d3d749e5a55317935b"
+  
     private let yahooWeatherKey = "dj0yJmk9TWMwM1dsM3BSbE15JmQ9WVdrOWNFbExlR0Z2Tkc4bWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD1lNw"
     private let yahooWeatherBaseUrl = "https://query.yahooapis.com/v1/public/yql?q="
     
-    
-    //    init(){
-    //
-    //        iconArray = ["ic_sun","ic_cloud","ic_umbrella","ic_drop"]
-    //
-    //    }
-    
-    private func getIconOpenWeather(code:Double){
         
-        /*
-         icon set Openweather
-         200 ... 232 thunder
-         300 ... 322 drizzle (light rain)
-         500 ... 532 rain
-         600 ... 622 snow
-         701 ... 781 smog - fog
-         800 - clear
-         801 ... 804 overcast
-         900  ... 999 ?? (disasters ...)
-         */
-        
-        let date = Date()
-        let calendar = Calendar.current
-        let hour = calendar.component(.hour, from: date)
-        print("**:: hour:: "+"\(hour)")
-        
-        if code<200 {
-            mainIcon = "ic_cloud-wind"
-        }else if code < 299 {
-            mainIcon = "ic_thunder"
-        }else if code < 399 {
-            mainIcon = "ic_light_rain"
-        }else if code < 599 {
-            mainIcon = "ic_rain"
-        }else if code < 699 {
-            mainIcon = "ic_snow"
-        }else if code < 799 {
-            mainIcon = "ic_mist"
-        }else if code < 805 {
-            mainIcon = "ic_cloud_overcast"
-        }else if code < 999 {
-            mainIcon = "ic_tornado"
-        }else {
-            mainIcon = "ic_cloud-wind"
-        }
-        if code == 800 {
-            if hour > 6 && hour < 18 {
-                mainIcon = "ic_sun"
-            }else {
-                mainIcon = "ic_moon"
-            }
-        }
-    }
-    
-    public func convert(temp:Float) -> (Float) {
+    public func convertKelvins(temp:Float) -> (Float) {
         // from K to C or F
         var r:Float = 0
         if isMetric {
@@ -105,7 +57,12 @@ class WeatherService {
         return r
     }
     
-    public func convert(speed:Float) -> (Float) {
+    public func convertFarenheit(temp:Float) -> (Float) {
+        // from F to C
+        return (temp-32)*(5/9)
+    }
+    
+    public func convertMetersPerSec(speed:Float) -> (Float) {
         // from m/s to kph or mph
         var r:Float = 0
         if isMetric {
@@ -118,14 +75,43 @@ class WeatherService {
         return r
     }
     
+    public func convDegreesToCardinal(degrees:Float) -> (String) {
+        //var r=""
+        
+        let names = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+        let count = names.count
+        
+        //let dir:Int = remainder(round((degrees/360) * count),count)
+        let fl = (degrees/360) * Float(count)
+        let ro:Int = Int(fl.rounded())
+        var re = ro % count
+        if re < 0 {
+            re += count
+        }
+        
+        return names[re]
+        
+        //even not funny....
+//        switch degrees {
+//        case 0..<22 : r="N"
+//        case 22..<67 : r="NE"
+//        case 67..<112 : r="E"
+//        case 112..<157 : r="SE"
+//        case 157..<202 : r="S"
+//        case 202..<247 : r="SW"
+//        case 247..<292 : r="W"
+//        case 292..<337 : r="NW"
+//        case 337..<361 : r="N"
+//        default: r="calm"
+//            }
+//        return r
+    }
     
     private func extractData(weatherData: Data, completion:@escaping ( ()->() ) ) {
         let json = try? JSONSerialization.jsonObject(with: weatherData as Data, options: []) as! Dictionary<String,Any>
         
         
         //Yahoo api json response
-        
-        
         if json != nil {
             print("====== YAHOO JSON ====== data:: \n")
             
@@ -146,6 +132,7 @@ class WeatherService {
                         }
                         
                         if let atm = ch["atmosphere"] as? [String:Any]{
+                            debugPrint("\n :: atmosphere",atm)
                             if let hum = Int((atm["humidity"] as? String)!) {
                                 self.cHumidity = hum
                             }
@@ -155,6 +142,13 @@ class WeatherService {
                                 }
                                 self.cPressure = pr
                             }
+                            
+                            if let vis = Float((atm["visibility"] as? String)!) {
+                                self.cVisibility = vis/2
+                                print("atm->vis",(atm["visibility"] as? String)!)
+                                print("cVisibility: \(cVisibility)")
+                            }
+                            
                         }
                         
                         if let wnd = ch["wind"] as? [String:Any]{
@@ -163,17 +157,34 @@ class WeatherService {
                             }
                             if let dir = Float((wnd["direction"] as? String)!) {
                                 self.cWindDir = dir
+                                self.cWindCardinal = self.convDegreesToCardinal(degrees: dir)
+                            }
+                            if let chill = Float((wnd["chill"] as? String)!) {
+                                //probably "feels like temperature"
+                                //yql always in F, convert for C:
+                                if self.isMetric {
+                                    self.cWindChill = self.convertFarenheit(temp: chill)
+                                }else{
+                                    self.cWindChill = chill
+                                }
                             }
                         }
-                        
-                        
                         
                         if let item = ch["item"] as? [String:Any]{
                             
                             if let cond = item["condition"] as? [String:Any]{
+                                
                                 if let temp = Float((cond["temp"] as? String)!){
                                     self.currentTemp=temp
                                 }
+                                
+                                if let code = Int((cond["code"] as? String)!){
+                                    self.currentCode = code
+                                    
+                                    self.picWeatherMain = getConditionPicName(code: code)
+                                
+                                }
+                                
                                 if let txt = cond["text"] as? String{
                                     self.description=txt
                                 }
@@ -182,12 +193,17 @@ class WeatherService {
                             if let forecast = item["forecast"] as? Array<Any>{
 //                                print("\n ***forecast \n")
 //                                print(forecast)
+                                
+                                //reset array
+                                 self.yqlForecastArray.removeAll()
+                                
                                 for item in forecast as! [[String:Any]]{
                                     
                                     var dayForecast = DailyForecast()
                                     
                                     if let code = Int((item["code"] as? String)!){
                                         dayForecast.code = code
+                                        dayForecast.conditionPicName = getConditionPicName(code: code)
                                     }
                                     if let date = item["date"] as? String{
                                         dayForecast.dateStr = date
@@ -207,117 +223,68 @@ class WeatherService {
                                     
                                     self.yqlForecastArray.append(dayForecast)
                                 }
+                                
+                                //get max min temp from first element (should be current day)
+                                
+                                if let forecast = yqlForecastArray[0] as DailyForecast? {
+                                    self.maxTemp = forecast.tempHigh
+                                    self.minTemp = forecast.tempLow
+                                    print("**** forecast", forecast)
+                                }
                             }
-                            
-                            
-                            
                         }
-                        
-                        
                         
                     }
                 }
             }
             
         }
-        
-        
-        /*
-         
-         //OPENWEATHER
-         
-         if json != nil {
-         if let top =  json!["list"] as? [String: Any] {
-    
-         if json != nil {
-         if let name = json!["name"] as? String {
-         cityName = name
-         }
-         if let main = json!["main"] as? Dictionary<String, Any> {
-         if let temp = main["temp"] as? Float {
-         currentTemp = convert(temp: temp)
-         }
-         if let humidity = main["humidity"] as? Int{
-         cHumidity = humidity
-         }
-         if let pressure = main["pressure"] as? Int{
-         cPressure =  pressure
-         }
-         if let tmin = main["temp_min"] as? Float{
-         minTemp = convert(temp: tmin)
-         }
-         if let tmax = main["temp_max"] as? Float{
-         maxTemp = convert(temp: tmax)
-         }
-         }
-         
-         print("**  trying weather CODES:")
-         if let weatherArr = json!["weather"] as? Array<Any> {
-         if let weatherCodes = weatherArr[0] as? Dictionary<String,Any>{
-         if let descr = weatherCodes["description"] as? String{
-         print ("weather DESCRIPTION::", descr)
-         description = descr
-         }
-         if let id = weatherCodes["id"] as? Double{
-         print ("weather id::  "+"\(id)")
-         codeId = String(id)
-         getIcon(code: id)
-         }
-         }
-         }
-         if let wind = json!["wind"] as? NSDictionary {
-         if let speed = wind["speed"] as? Float{
-         cWindSpeed = convert(speed: speed)
-         print("windspeed: ", cWindSpeed)
-         }
-         if let deg = wind["deg"] as? Float{
-         cWindDir = deg
-         }
-         }
-         
-         */
-        print("**** weather extraction END *** \n")
-        
-      //  print(json ?? "nil")
-        
+              print("**** weather extraction END *** \n")
+       // print(json ?? "nil")
         completion() //bg thread
         
     }
     
-    
-    //callback be used
-    
-    //    public func getWeather(city:String, country:String, completion:@escaping ( ()->() ) ) {
-    //
-    //        let session = URLSession.shared
-    //        let str:String="\(openWeatherMapBaseURL)?APPID=\(openWeatherMapAPIKey)&q=\(city)"
-    //        print(str)
-    //        if let requestUrl = URL(string: str.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!){
-    //            let dataTask = session.dataTask(with: requestUrl){
-    //                (data, response, error) -> Void in
-    //                if let error = error {
-    //                    //some error on server
-    //                    print ("Error:\n\(error)")
-    //                }else{
-    //                    print("** getWeather->extractData" )
-    //                    self.extractData(weatherData: data!, completion: completion)
-    //                    // completion()
-    //                    // completion will continue on bg thread..
-    //                }
-    //            };
-    //            dataTask.resume()
-    //
-    //        }else{
-    //            print("URL nil ...")
-    //        }
-    //
-    //    }
-    
+    public func getConditionPicName(code:Int)->(String) {
+        var str = ""
+        
+        switch code{
+        case 0...2: str="ic_hurricane"
+        case 3,4,37...39: str="ic_thunder"
+        case 5...8,18,46: str="ic_snow_rain"
+        case 9: str="ic_drizzle"
+        case 10: str="ic_freezing_rain"
+        case 11,12,40:str="ic_showers"
+        case 13,14: str="ic_light_snow"
+        case 15,16,41...43: str="ic_snow"
+        case 17,35: str="ic_hail"
+        case 19...22: str="ic_fog"
+        case 23...25: str="ic_wind"
+        case 26: str="ic_cloudy"
+        case 27,28: str="ic_mostly_cloudy" //27day, 28night
+        case 29,30,44: str="ic_part_cloudy" // day, night, general
+        case 31,32: str="ic_clear" //sunny=day, clear=night
+        case 33,34: str="ic_light_clouds" //day,night
+        case 36: str="ic_hot" // ????
+        case 37,47: str="ic_isolated_thunder"
+        case 3200: str="ic_na"
+        default:str="ic_na"
+            
+        }
+        
+        return str
+    }
     
     public func getWeather(city:String, country:String,completion:@escaping ( ()->() ) ) {
         
-        if isMetric {unitToken="c"} else {unitToken = "f"}
-        let yqlstr = "select * from weather.forecast where woeid in (select woeid from geo.places(1) where text='"+city+","+country+"')" + " and u='" + unitToken + "' "
+        if isMetric {
+            unitTemp="°C"
+            unitDist="km"
+        } else {
+            unitTemp = "°F"
+            unitDist = "mi"
+        }
+        let yqlstr = "select * from weather.forecast where woeid in (select woeid from geo.places(1) where text='"+city+","+country+"')" + " and u='" + unitTemp + "' "
         
         let session = URLSession.shared
         let str:String=yahooWeatherBaseUrl + yqlstr + "&format=json" + "&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback="
@@ -342,17 +309,10 @@ class WeatherService {
             print("URL nil ...")
         }
     }
-    
-    
-    
-    
-    
-    
-    // END ********
 }
 
 struct DailyForecast{
-    
+    public var conditionPicName = ""
     public var code:Int = 0
     public var dateStr:String = ""
     public var day:String = ""

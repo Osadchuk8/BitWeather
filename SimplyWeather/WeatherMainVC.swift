@@ -17,27 +17,35 @@ class WeatherMainVC: UIViewController, CLLocationManagerDelegate {
     @IBOutlet var getBtn: UIButton!
     @IBOutlet var tmpMaxLbl: UILabel!
     @IBOutlet var tmpMinLbl: UILabel!
-    
     @IBOutlet var statusLbl: UILabel!
     @IBOutlet var imgIconMain: UIImageView!
     
-    @IBOutlet var imgPrecipIcon: UIImageView!
-    @IBOutlet var imgPressureIcon: UIImageView!
-    @IBOutlet var imgWindIcon: UIImageView!
-    @IBOutlet var imgHumidity: UIImageView!
+   // @IBOutlet var precipLbl: UILabel! // no data in YQL api :(
+  
+    @IBOutlet weak var lblChill: UILabel!
+    @IBOutlet weak var lblHumidity: UILabel!
+    @IBOutlet weak var lblVisibility: UILabel!
+    @IBOutlet weak var lblPressure: UILabel!
+    @IBOutlet weak var lblWindDir: UILabel!
+    @IBOutlet weak var lblWindSpeed: UILabel!
     
-    @IBOutlet var precipLbl: UILabel!
-    @IBOutlet var pressLbl: UILabel!
-    @IBOutlet var windLbl: UILabel!
-    @IBOutlet var humLbl: UILabel!
     
     @IBOutlet var weekTableView: UITableView!
-    
     @IBOutlet var viewRootView: UIView!
     @IBOutlet var viewBgImage: UIImageView!
     
     
     @IBOutlet var activityIndicator: UIActivityIndicatorView!
+    
+    
+    @IBOutlet weak var btnAddCity: UIButton!
+    
+    //SEARCH VIEW
+    
+    @IBOutlet weak var viewSearch: UIView!
+    @IBOutlet weak var constrSVTop: NSLayoutConstraint!
+    @IBOutlet weak var constrSVBot: NSLayoutConstraint!
+    
     
     let TAG = "**WeatherMainVC::: "
     
@@ -69,7 +77,14 @@ class WeatherMainVC: UIViewController, CLLocationManagerDelegate {
         //check connectivity
         isConnected=ConnectivityService.isConnectedToNetwork()
         
+        //someUI
         setBackgrndImage()
+        weekTableView.tableFooterView = UIView(frame: .zero)
+        
+        //hide search
+        constrSVTop.constant = -viewSearch.frame.height
+        constrSVBot.constant=400+viewSearch.frame.height
+        
         
         //location mgr setup
         locationMgr.delegate=self
@@ -97,6 +112,17 @@ class WeatherMainVC: UIViewController, CLLocationManagerDelegate {
         // her tam!!! never up !
         print ( TAG+" didFinishLaunchingWithOptions()")
     }
+    
+    
+    @IBAction func onTapAddCity(_ sender: Any) {
+        //show search
+        constrSVTop.constant=0
+        constrSVBot.constant=400
+        
+        
+    }
+    
+    
     
     func startSequence(){
         //run get locationWeather once:
@@ -163,7 +189,6 @@ class WeatherMainVC: UIViewController, CLLocationManagerDelegate {
         seconds = 0
         timer?.invalidate()
         timer = Timer.scheduledTimer(timeInterval: 60, target: self, selector: #selector(WeatherMainVC.onTimer), userInfo: nil, repeats: true)
-        print("timer start")
         
     }
     
@@ -254,22 +279,33 @@ class WeatherMainVC: UIViewController, CLLocationManagerDelegate {
     func redraw(){
         doInUi {
             print("==redr== on main thr: ", Thread.isMainThread)
-            self.tempLbl.text = " " + String(format: "%.0f", self.weather.currentTemp) + "˚C"
+            
+            //TODO units !!!
+            self.tempLbl.text = " " + String(format: "%.0f", self.weather.currentTemp) + self.weather.unitTemp
             self.cityLbl.text = " " + self.msg
             self.statusLbl.text = " " + self.weather.description
-            self.tmpMaxLbl.text = " " + String(format: "%.0f", self.weather.maxTemp)
-            self.tmpMinLbl.text = " " + String(format: "%.0f", self.weather.minTemp)
+            self.tmpMaxLbl.text = " " + String(format: "%d", self.weather.maxTemp)
+            self.tmpMinLbl.text = " " + String(format: "%d", self.weather.minTemp)
             
-            self.humLbl.text = " " + String(format: "%.0d", self.weather.cHumidity) + "%"
-            self.pressLbl.text = " " + String(format: "%.0f", self.weather.cPressure)  + "mBar"
+            self.lblChill.text = " " + String(format: "%.0f", self.weather.cWindChill) + self.weather.unitTemp
+            self.lblHumidity.text = " " + String(format: "%.0d", self.weather.cHumidity) + "%"
+            self.lblVisibility.text = " " + String(format: "%.0f", self.weather.cVisibility) + self.weather.unitDist
+            self.lblPressure.text = " " + String(format: "%.0f", self.weather.cPressure) + "kPa"
+            self.lblWindDir.text = " " + self.weather.cWindCardinal
+            self.lblWindSpeed.text = " " + String(format: "%.0f", self.weather.cWindSpeed) + self.weather.unitDist+"/h"
             
-            self.windLbl.text = " "+String(format: "%.0f", self.weather.cWindSpeed)+" km/h \n wind"
-            self.imgIconMain.image = UIImage(named: self.weather.mainIcon)
-            
+            self.imgIconMain.image = UIImage(named: self.weather.picWeatherMain)
             self.weekTableView.reloadData()
         }
         
-        
+        print(TAG+"results: \n",
+              "\n chill: \( weather.cWindChill)",
+              "\n speed: \( weather.cWindSpeed)",
+              "\n dir: \( weather.cWindDir)",
+              "\n press: \( weather.cPressure)",
+              "\n hum: \( weather.cHumidity)",
+              "\n temp: \( weather.currentTemp)",
+              "\n vis: \( weather.cVisibility)"  )
         
     }
     
@@ -354,12 +390,15 @@ class WeatherMainVC: UIViewController, CLLocationManagerDelegate {
     }
     
     
+    
+    
 }
 
 
 extension WeatherMainVC: UITableViewDataSource,UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        print(TAG+"table count::::::",  weather.yqlForecastArray.count )
         return weather.yqlForecastArray.count
     }
     
@@ -368,15 +407,14 @@ extension WeatherMainVC: UITableViewDataSource,UITableViewDelegate {
         let cell = tableView.dequeueReusableCell(withIdentifier: "week_cell") as! WeatherTableCell
         
         
-        cell.weekDayLbl.text = getDayFromDate(dateStr: weather.yqlForecastArray[indexPath.row].dateStr)
-        
-        cell.weekPrecipLbl.text = String(weather.yqlForecastArray[indexPath.row].dateStr)
+        cell.weekDayLbl.text = getDayFromDate(dateStr: weather.yqlForecastArray[indexPath.row].dateStr)        
+        cell.weekDescrLbl.text = String(weather.yqlForecastArray[indexPath.row].textDescr)
         cell.weekTempMaxLbl.text = String(weather.yqlForecastArray[indexPath.row].tempHigh)
         cell.weekTempMinLbl.text = String(weather.yqlForecastArray[indexPath.row].tempLow)
-        cell.weekIconImg.image = UIImage(named: "ic_sun")
+        cell.weekIconImg.image = UIImage(named: weather.yqlForecastArray[indexPath.row].conditionPicName)
         return cell
         
-    }
+    } 
     
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
@@ -391,19 +429,12 @@ extension WeatherMainVC: UITableViewDataSource,UITableViewDelegate {
         df.dateFormat = "dd MM yyyy"
         df.locale = Locale(identifier: "en_US_POSIX")
         if let inDate = df.date(from: dateStr) {
-            df.dateFormat="EEEE"
+            df.dateFormat="EEEEEE, MMM d"
             return df.string(from: inDate)}
         else {
             return ""
         }
-        
-        //        let c = Calendar.current
-        //        let components = c.component(.weekday, from: inDate)
-        //        let weekDay = components.weekday
-        //
-        //        print(weekDay)
-        //        return weekDay
-        
+    
     }
 }
 
@@ -411,7 +442,7 @@ class WeatherTableCell:UITableViewCell {
     
     @IBOutlet var weekDayLbl: UILabel!
     @IBOutlet var weekIconImg: UIImageView!
-    @IBOutlet var weekPrecipLbl: UILabel!
+    @IBOutlet var weekDescrLbl: UILabel!
     @IBOutlet var weekTempMaxLbl: UILabel!
     @IBOutlet var weekTempMinLbl: UILabel!
     
