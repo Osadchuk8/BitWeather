@@ -49,7 +49,8 @@ class WeatherMainVC: UIViewController, CLLocationManagerDelegate {
     
     let TAG = "**WeatherMainVC::: "
     
-    let weather = WeatherService()
+    //let weather = WeatherServiceYahoo ()
+    let weather = WeatherServiceDarksky()
     let locationMgr =  CLLocationManager()
     let geoCoder = CLGeocoder()
     var currentCity = ""
@@ -64,6 +65,10 @@ class WeatherMainVC: UIViewController, CLLocationManagerDelegate {
     
     // weak var countDownTimer:Timer?
     var seconds:Int = 0
+    
+    
+    //SEARCH
+    var resultSearchController:UISearchController? = nil
     
     
     
@@ -83,7 +88,7 @@ class WeatherMainVC: UIViewController, CLLocationManagerDelegate {
         
         //hide search
         constrSVTop.constant = -viewSearch.frame.height
-        constrSVBot.constant=400+viewSearch.frame.height
+       //constrSVBot.constant=400+viewSearch.frame.height
         
         
         //location mgr setup
@@ -102,30 +107,53 @@ class WeatherMainVC: UIViewController, CLLocationManagerDelegate {
             msg="No connection..."
             cityLbl.text = " " + msg
         }
+        
+        //SEARCH
+        let citySearchVC = storyboard!.instantiateViewController(withIdentifier: "city_search_vc") as! CitySearchVC
+        resultSearchController = UISearchController(searchResultsController: citySearchVC)
+        resultSearchController?.searchResultsUpdater = citySearchVC
+        
+        let searchBar = resultSearchController!.searchBar
+        searchBar.backgroundColor = UIColor.clear
+        
+        searchBar.sizeToFit()
+        searchBar.placeholder = "enter city name"
+        
+        self.viewSearch.addSubview(searchBar)
+        viewSearch.backgroundColor = UIColor.clear
+        
+        let backBtn = UIButton.init(frame: CGRect.init(x: 10, y: 10, width: 30, height: 30))
+        backBtn.backgroundColor = UIColor.yellow
+        backBtn.addTarget(self, action: #selector(dismissSearchVC), for: UIControlEvents.allTouchEvents)
+        
+        viewSearch.addSubview(backBtn)
+        
+        resultSearchController?.dimsBackgroundDuringPresentation = true
+        definesPresentationContext = true
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        // print(TAG+" viewWillAppear")
-    }
-    
-    func didFinishLaunchingWithOptions(){
-        // her tam!!! never up !
-        print ( TAG+" didFinishLaunchingWithOptions()")
     }
     
     
     @IBAction func onTapAddCity(_ sender: Any) {
         //show search
-        constrSVTop.constant=0
-        constrSVBot.constant=400
-        
-        
+        constrSVTop.constant=22
+        //constrSVBot.constant=400
+    }
+    
+    func dismissSearchVC(){
+        constrSVTop.constant = -viewSearch.frame.height
     }
     
     
     
     func startSequence(){
         //run get locationWeather once:
+        
+        //TODO: chain !
+        
         getLastKnownLocation()
         processLocationTask(location: currentLocation)
     }
@@ -225,21 +253,26 @@ class WeatherMainVC: UIViewController, CLLocationManagerDelegate {
     }
     
     
-    //reverse geocode -> address -> weather data
+    // gps -> address -> weather data
+    
     func processLocationTask(location: CLLocation){
         isBusy=true
         self.startIndicator()
         //var str = ""
         print("**processLocationTask() fired!")
         
-        // TODO: this task is async, should listen to completion
+        
+     //   weather.requestWeather(location:location, completion: self.onWeatherDataReceived)
+        
+        // >>  yahoo
+        /*
+        // TODO: this task is async, .. completion
         geoCoder.reverseGeocodeLocation(location, completionHandler: { placemarks, error in
             guard let addressDict = placemarks?[0].addressDictionary else {return}
             
             //ASYNC
             
             print("** start ->reverseGeocodeLocation()!...")
-            
             if let city = addressDict["City"] as? String {
                 self.currentCity=city
                 print ("currentCity=", self.currentCity)
@@ -248,7 +281,6 @@ class WeatherMainVC: UIViewController, CLLocationManagerDelegate {
                 self.country = country
                 print ("country = ", self.country)
             }
-            
             if self.currentCity.characters.count>3 && self.country.characters.count>1 {
                 
                 print(self.TAG+"**  ->reverseGeocodeLocation() -> ASYNC COMPLETED...")
@@ -261,6 +293,8 @@ class WeatherMainVC: UIViewController, CLLocationManagerDelegate {
             print("**.isBusy:: ",self.isBusy)
             //END OF ASYNC TASK
         } )
+        
+        */
     }
     
     
@@ -281,6 +315,21 @@ class WeatherMainVC: UIViewController, CLLocationManagerDelegate {
             print("==redr== on main thr: ", Thread.isMainThread)
             
             //TODO units !!!
+            /*
+            self.tempLbl.text = " " + String(format: "%.0f", self.weather.temperature) + " C"
+            self.cityLbl.text = " " + self.msg
+            self.statusLbl.text = " " + self.weather.summary
+            
+            self.lblHumidity.text = " " + String(format: "%.0f", self.weather.humidity) + "%"
+            self.lblPressure.text = " " + String(format: "%.0f", self.weather.pressure) + "kPa"
+            self.lblWindDir.text = ""+UnitsHelper.convDegreesToCardinal(degrees: self.weather.windBearing)
+            print(self.weather.windBearing)
+            self.lblWindSpeed.text = " " + String(format: "%.0f", self.weather.windSpeed) + "km/h"
+            
+            */
+            
+            // yahoo
+            /*
             self.tempLbl.text = " " + String(format: "%.0f", self.weather.currentTemp) + self.weather.unitTemp
             self.cityLbl.text = " " + self.msg
             self.statusLbl.text = " " + self.weather.description
@@ -295,17 +344,12 @@ class WeatherMainVC: UIViewController, CLLocationManagerDelegate {
             self.lblWindSpeed.text = " " + String(format: "%.0f", self.weather.cWindSpeed) + self.weather.unitDist+"/h"
             
             self.imgIconMain.image = UIImage(named: self.weather.picWeatherMain)
+           */
+            
+            
             self.weekTableView.reloadData()
         }
         
-        print(TAG+"results: \n",
-              "\n chill: \( weather.cWindChill)",
-              "\n speed: \( weather.cWindSpeed)",
-              "\n dir: \( weather.cWindDir)",
-              "\n press: \( weather.cPressure)",
-              "\n hum: \( weather.cHumidity)",
-              "\n temp: \( weather.currentTemp)",
-              "\n vis: \( weather.cVisibility)"  )
         
     }
     
@@ -398,8 +442,9 @@ class WeatherMainVC: UIViewController, CLLocationManagerDelegate {
 extension WeatherMainVC: UITableViewDataSource,UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        print(TAG+"table count::::::",  weather.yqlForecastArray.count )
-        return weather.yqlForecastArray.count
+        return 5
+//        print(TAG+"table count::::::",  weather.yqlForecastArray.count )
+//        return weather.yqlForecastArray.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -407,11 +452,11 @@ extension WeatherMainVC: UITableViewDataSource,UITableViewDelegate {
         let cell = tableView.dequeueReusableCell(withIdentifier: "week_cell") as! WeatherTableCell
         
         
-        cell.weekDayLbl.text = getDayFromDate(dateStr: weather.yqlForecastArray[indexPath.row].dateStr)        
-        cell.weekDescrLbl.text = String(weather.yqlForecastArray[indexPath.row].textDescr)
-        cell.weekTempMaxLbl.text = String(weather.yqlForecastArray[indexPath.row].tempHigh)
-        cell.weekTempMinLbl.text = String(weather.yqlForecastArray[indexPath.row].tempLow)
-        cell.weekIconImg.image = UIImage(named: weather.yqlForecastArray[indexPath.row].conditionPicName)
+//        cell.weekDayLbl.text = getDayFromDate(dateStr: weather.yqlForecastArray[indexPath.row].dateStr)
+//        cell.weekDescrLbl.text = String(weather.yqlForecastArray[indexPath.row].textDescr)
+//        cell.weekTempMaxLbl.text = String(weather.yqlForecastArray[indexPath.row].tempHigh)
+//        cell.weekTempMinLbl.text = String(weather.yqlForecastArray[indexPath.row].tempLow)
+//        cell.weekIconImg.image = UIImage(named: weather.yqlForecastArray[indexPath.row].conditionPicName)
         return cell
         
     } 

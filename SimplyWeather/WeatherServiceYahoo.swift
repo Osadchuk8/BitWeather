@@ -8,7 +8,7 @@
 
 import Foundation
 
-class WeatherService {
+class WeatherServiceYahoo {
     
     public var isMetric:Bool = true
     public var unitTemp = ""
@@ -38,74 +38,10 @@ class WeatherService {
     public var picWeatherMain:String = ""
     
     
-    // TODO shared config
   
     private let yahooWeatherKey = "dj0yJmk9TWMwM1dsM3BSbE15JmQ9WVdrOWNFbExlR0Z2Tkc4bWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD1lNw"
     private let yahooWeatherBaseUrl = "https://query.yahooapis.com/v1/public/yql?q="
     
-        
-    public func convertKelvins(temp:Float) -> (Float) {
-        // from K to C or F
-        var r:Float = 0
-        if isMetric {
-            // use centigrade
-            r=temp-273
-        }else{
-            // use farengeit
-            r=(9/5)*(temp-273)+32
-        }
-        return r
-    }
-    
-    public func convertFarenheit(temp:Float) -> (Float) {
-        // from F to C
-        return (temp-32)*(5/9)
-    }
-    
-    public func convertMetersPerSec(speed:Float) -> (Float) {
-        // from m/s to kph or mph
-        var r:Float = 0
-        if isMetric {
-            // use centigrade
-            r=speed*3.6
-        }else{
-            // use mph
-            r=speed*2.23
-        }
-        return r
-    }
-    
-    public func convDegreesToCardinal(degrees:Float) -> (String) {
-        //var r=""
-        
-        let names = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
-        let count = names.count
-        
-        //let dir:Int = remainder(round((degrees/360) * count),count)
-        let fl = (degrees/360) * Float(count)
-        let ro:Int = Int(fl.rounded())
-        var re = ro % count
-        if re < 0 {
-            re += count
-        }
-        
-        return names[re]
-        
-        //even not funny....
-//        switch degrees {
-//        case 0..<22 : r="N"
-//        case 22..<67 : r="NE"
-//        case 67..<112 : r="E"
-//        case 112..<157 : r="SE"
-//        case 157..<202 : r="S"
-//        case 202..<247 : r="SW"
-//        case 247..<292 : r="W"
-//        case 292..<337 : r="NW"
-//        case 337..<361 : r="N"
-//        default: r="calm"
-//            }
-//        return r
-    }
     
     private func extractData(weatherData: Data, completion:@escaping ( ()->() ) ) {
         let json = try? JSONSerialization.jsonObject(with: weatherData as Data, options: []) as! Dictionary<String,Any>
@@ -157,13 +93,13 @@ class WeatherService {
                             }
                             if let dir = Float((wnd["direction"] as? String)!) {
                                 self.cWindDir = dir
-                                self.cWindCardinal = self.convDegreesToCardinal(degrees: dir)
+                                self.cWindCardinal = UnitsHelper.convDegreesToCardinal(degrees: Double(dir))
                             }
                             if let chill = Float((wnd["chill"] as? String)!) {
                                 //probably "feels like temperature"
                                 //yql always in F, convert for C:
                                 if self.isMetric {
-                                    self.cWindChill = self.convertFarenheit(temp: chill)
+                                    self.cWindChill = UnitsHelper.convertFarenheit(temp: chill)
                                 }else{
                                     self.cWindChill = chill
                                 }
@@ -321,3 +257,4 @@ struct DailyForecast{
     public var textDescr:String = ""
     
 }
+
