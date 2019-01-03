@@ -10,6 +10,7 @@
 		071A1CD720CCA772007F1056 /* CitySearchVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 071A1CD620CCA772007F1056 /* CitySearchVC.swift */; };
 		0747E7F91FDE36270051F707 /* WeatherServiceYahoo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0747E7F81FDE36270051F707 /* WeatherServiceYahoo.swift */; };
 		0747E7FB1FE23D850051F707 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0747E7FA1FE23D850051F707 /* LocationManager.swift */; };
+		074C673021D42BA600F7446A /* GfxHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 074C672F21D42BA600F7446A /* GfxHelper.swift */; };
 		0758E92D2005B95E002A6374 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0758E92C2005B95E002A6374 /* Images.xcassets */; };
 		0758E92F2005CB73002A6374 /* WeatherMainVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0758E92E2005CB73002A6374 /* WeatherMainVC.swift */; };
 		077057A4219539210072E769 /* UnitsHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 077057A3219539210072E769 /* UnitsHelper.swift */; };
@@ -48,6 +49,7 @@
 		071A1CD620CCA772007F1056 /* CitySearchVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CitySearchVC.swift; sourceTree = "<group>"; };
 		0747E7F81FDE36270051F707 /* WeatherServiceYahoo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WeatherServiceYahoo.swift; sourceTree = "<group>"; };
 		0747E7FA1FE23D850051F707 /* LocationManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
+		074C672F21D42BA600F7446A /* GfxHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GfxHelper.swift; sourceTree = "<group>"; };
 		0758E92C2005B95E002A6374 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		0758E92E2005CB73002A6374 /* WeatherMainVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WeatherMainVC.swift; sourceTree = "<group>"; };
 		077057A3219539210072E769 /* UnitsHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitsHelper.swift; sourceTree = "<group>"; };
@@ -129,6 +131,7 @@
 				077057A92197C54E0072E769 /* WeatherVC.swift */,
 				077FCBDE21992A5A00568362 /* LocationService.swift */,
 				077057A3219539210072E769 /* UnitsHelper.swift */,
+				074C672F21D42BA600F7446A /* GfxHelper.swift */,
 				07A0A67F1FD10C3800ACD614 /* Main.storyboard */,
 				079CD282206FE8BF00EDEC2E /* Storyboard2.storyboard */,
 				07A0A6841FD10C3800ACD614 /* LaunchScreen.storyboard */,
@@ -300,6 +303,7 @@
 				077FCBDF21992A5A00568362 /* LocationService.swift in Sources */,
 				077057A821953BB90072E769 /* WeatherServiceDarksky.swift in Sources */,
 				0747E7FB1FE23D850051F707 /* LocationManager.swift in Sources */,
+				074C673021D42BA600F7446A /* GfxHelper.swift in Sources */,
 				07A0A67E1FD10C3800ACD614 /* ViewController.swift in Sources */,
 				0758E92F2005CB73002A6374 /* WeatherMainVC.swift in Sources */,
 				077057AA2197C54E0072E769 /* WeatherVC.swift in Sources */,

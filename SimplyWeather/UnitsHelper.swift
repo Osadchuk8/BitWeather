@@ -51,8 +51,8 @@ class UnitsHelper {
         var r = ""
         if unitsType == .ca {
             switch value {
-            case 0..<0.1 : r="-"
-            case 0.1..<1 : r="\(prefix): <1 \(unit)"
+            case 0..<0.5 : r="-"
+            case 0.5..<1 : r="\(prefix): <1 \(unit)"
             case 1...2 : r="\(prefix): 1..2  \(unit)"
             case 2... : r="\(prefix): "+String(format: "%.0f", value)+" \(unit)"
             default: r="\(prefix): "+String(format: "%.0f", value)+" \(unit)"
@@ -144,10 +144,10 @@ class UnitsHelper {
     }
     
     // date as: "Monday, Jan 01"
-    class func formatDateEEEEMMMdd(timeInterval: Double) -> String {
+    class func formatDateEMMMdd(timeInterval: Double) -> String {
         let date = Date(timeIntervalSince1970: timeInterval)
         let formatter = DateFormatter()
-        formatter.dateFormat = "EEEE, MMM dd"
+        formatter.dateFormat = "E, MMM dd"
         let str = formatter.string(from: date)
         
         return "\(str)"

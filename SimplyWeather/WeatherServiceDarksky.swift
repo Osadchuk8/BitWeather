@@ -75,6 +75,7 @@ class WeatherServiceDarksky {
                 dsd.icon = DarkSkyData.DSIcons(rawValue: ii)! } //enum representation
             if let pi = c ["precipIntensity"] as? Double { dsd.precipIntensity = pi }
             if let pp = c ["precipProbability"] as? Double { dsd.precipProbability = pp }
+            if let pt = c ["precipType"] as? String {dsd.precipType = DarkSkyData.DSPrecipType(rawValue: pt)}
             if let t = c ["temperature"] as? Double { dsd.temperature = t }
             if let at = c["apparentTemperature"] as? Double { dsd.apparentTemperature = at}
             if let h = c ["humidity"] as? Double { dsd.humidity = h*100 }
@@ -119,12 +120,17 @@ public struct DarkSkyData {
         case clear_day, clear_night, rain, snow, sleet, wind, fog, cloudy, partly_cloudy_day, partly_cloudy_night
     }
     
+    public enum DSPrecipType: String {
+        case rain, snow, sleet
+    }
+    
     //current
     public var time = 0.0
     public var summary = ""
     public var icon:DSIcons = .partly_cloudy_day
     public var precipIntensity = 0.0
     public var precipProbability = 0.0
+    public var precipType: DSPrecipType?
     public var temperature = 0.0
     public var apparentTemperature = 0.0
     public var humidity = 0.0
