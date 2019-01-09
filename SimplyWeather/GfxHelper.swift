@@ -12,18 +12,21 @@ import UIKit
 class GfxHelper {
     
     
-    class func resizeImage(image: UIImage?, size: CGSize?) -> UIImage? {
-        if let img = image, let sz = size {
-            UIGraphicsBeginImageContextWithOptions(sz, false, 1.0)
-            let rect = CGRect(x: 0, y: 0, width: sz.width, height: sz.height)
-            img.draw(in: rect)
+    class func scaledImage(image: UIImage?, newFrame: CGRect?) -> UIImage? {
+        if let i = image, let n = newFrame {
+            //keep aspect of original image, max image side = min target side
+            let ratio = min(n.width/i.size.width, n.height/i.size.height)
+            let size = CGSize(width: i.size.width*ratio, height: i.size.height*ratio)
+            UIGraphicsBeginImageContextWithOptions(size, false, 0.0) //scale = 0.0 : keep window pixel scale
+            let rect = CGRect(x: 0, y: 0, width: size.width, height: size.height)
+            i.draw(in: rect)
             let newImage = UIGraphicsGetImageFromCurrentImageContext()
             UIGraphicsEndImageContext()
+            print("scaledImg.size: \(newImage?.size)")
             return newImage
         }else {
             return nil
         }
-        
     }
     
     

@@ -51,7 +51,7 @@ class UnitsHelper {
         var r = ""
         if unitsType == .ca {
             switch value {
-            case 0..<0.5 : r="-"
+            case 0..<0.5 : r=""
             case 0.5..<1 : r="\(prefix): <1 \(unit)"
             case 1...2 : r="\(prefix): 1..2  \(unit)"
             case 2... : r="\(prefix): "+String(format: "%.0f", value)+" \(unit)"
@@ -60,7 +60,7 @@ class UnitsHelper {
         }
         else{ //us
             switch value {
-            case 0..<0.05 : r="-"
+            case 0..<0.05 : r=""
             case 0.05..<0.5 : r="\(prefix): <0.5 \(unit)"
             case 0.5...1 : r="\(prefix): 0.5..1 \(unit)"
             case 1... : r="\(prefix): "+String(format: "%.0f", value)+" \(unit)"
@@ -78,10 +78,10 @@ class UnitsHelper {
         return s
     }
     
-    class func convertKelvins(temp:Float, isMetric:Bool) -> (Float) {
+    class func convertKelvins(temp:Float, toMetric:Bool) -> (Float) {
         // from K to C or F
         var r:Float = 0
-        if isMetric {
+        if toMetric {
             // use centigrade
             r=temp-273
         }else{
@@ -143,22 +143,32 @@ class UnitsHelper {
         return weekDayStr
     }
     
+    class func hourFromUnixTime(unixTime: Double) -> Int? {
+        let date = Date(timeIntervalSince1970: unixTime)
+        let formatter = DateFormatter()
+        formatter.dateFormat = "H" //24hrs format HOUR
+        let str = formatter.string(from: date)
+        if let int = Int(str) {
+            return int
+        }else{
+            return nil
+        }
+    }
+    
     // date as: "Monday, Jan 01"
-    class func formatDateEMMMdd(timeInterval: Double) -> String {
+    class func dateFromUnixTimeEMMMdd(timeInterval: Double) -> String {
         let date = Date(timeIntervalSince1970: timeInterval)
         let formatter = DateFormatter()
         formatter.dateFormat = "E, MMM dd"
         let str = formatter.string(from: date)
-        
         return "\(str)"
     }
     
-    class func formatDateMMMMdyyyy(timeInterval: Double) -> String {
+    class func dateFromUnixTimeMMMMdyyyy(timeInterval: Double) -> String {
         let date = Date(timeIntervalSince1970: timeInterval)
         let formatter = DateFormatter()
         formatter.dateFormat = "MMMM d, yyyy"
         let str = formatter.string(from: date)
-        
         return "\(str)"
     }
     
