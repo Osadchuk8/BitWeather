@@ -22,7 +22,6 @@ class GfxHelper {
             i.draw(in: rect)
             let newImage = UIGraphicsGetImageFromCurrentImageContext()
             UIGraphicsEndImageContext()
-            print("scaledImg.size: \(newImage?.size)")
             return newImage
         }else {
             return nil

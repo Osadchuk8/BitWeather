@@ -24,7 +24,7 @@ class WeatherServiceDarksky {
     
  
     
-    public func requestWeather(units: UnitsHelper.UntitsType, location:CLLocation, completion: @escaping((DarkSkyTypes.DarkSkyDecodedForecast)->())){
+    public func requestWeather(units: UnitsHelper.UnitSystems, location:CLLocation, completion: @escaping((DarkSkyTypes.DarkSkyDecodedForecast)->())){
         var unitsSpec = "?units=auto"
         switch units {
         case .ca:
@@ -38,7 +38,7 @@ class WeatherServiceDarksky {
         let session = URLSession.shared
         let requestStr = ""+baseUrlStr+apiKey+"/"+"\(lat),\(lon)"+unitsSpec
         if let requestUrl = URL(string: requestStr.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!){
-            debugPrint("url::\(requestUrl.debugDescription)")
+            debugPrint("url:  \(requestUrl.debugDescription)")
             let task = session.dataTask(with: requestUrl){
                 (data, response, error) -> () in
                 if let err = error {
@@ -77,19 +77,18 @@ class WeatherServiceDarksky {
             if let s = c["summary"] as? String { current.summary = s }
             if let i = c ["icon"] as? String {
                 let ii = i.replacingOccurrences(of: "-", with: "_")
-                current.icon = DarkSkyTypes.DSIcons(rawValue: ii)! } //enum representation
-            if let pi = c ["precipIntensity"] as? Double { current.precipIntensity = pi }
-            if let pp = c ["precipProbability"] as? Double { current.precipProbability = pp }
-            if let pt = c ["precipType"] as? String {current.precipType = DarkSkyTypes.DSPrecipType(rawValue: pt)}
-            if let t = c ["temperature"] as? Double { current.temperature = t }
+                current.icon = DarkSkyTypes.DSIcons(rawValue: ii) } //enum representation
+            if let pi = c["precipIntensity"] as? Double { current.precipIntensity = pi }
+            if let pp = c["precipProbability"] as? Double { current.precipProbability = pp }
+            if let pt = c["precipType"] as? String {current.precipType = DarkSkyTypes.DSPrecipType(rawValue: pt)}
+            if let t = c["temperature"] as? Double { current.temperature = t }
             if let at = c["apparentTemperature"] as? Double { current.apparentTemperature = at}
-            if let h = c ["humidity"] as? Double { current.humidity = h*100 }
-            if let pr = c ["pressure"] as? Double { current.pressure = pr }
-            if let ws = c ["windSpeed"] as? Double { current.windSpeed = ws }
-            //windgust .. ?
-            //
-            if let wb = c ["windBearing"] as? Double { current.windBearing = wb }
-            if let v = c ["visibility"] as? Double { current.visibility = v }
+            if let h = c["humidity"] as? Double { current.humidity = h*100 }
+            if let pr = c["pressure"] as? Double { current.pressure = pr }
+            if let ws = c["windSpeed"] as? Double { current.windSpeed = ws }
+            //windgust
+            if let wb = c["windBearing"] as? Double { current.windBearing = wb }
+            if let v = c["visibility"] as? Double { current.visibility = v }
             if let cc = c["cloudCover"] as? Double { current.cloudCover = cc }
 
             debugPrint("weather data from json: [currently:] \n \(current.summary) \n \t: \(current.temperature) , hum: \(current.humidity) %")
@@ -109,13 +108,17 @@ class WeatherServiceDarksky {
                     if let s = day["summary"] as? String { d.summary = s}
                     if let i = day["icon"] as? String {
                         let ii = i.replacingOccurrences(of: "-", with: "_")
-                        d.icon = ii}  //String representation
+                        d.icon = DarkSkyTypes.DSIcons(rawValue: ii)}  //String representation
                     if let th = day["temperatureHigh"] as? Double { d.temperatureHigh = th}
                     if let tl = day["temperatureLow"] as? Double { d.temperatureLow = tl}
+                    if let pp = day["precipProbability"] as? Double { d.precipProbability = pp}
                     if let pm = day["precipIntensityMax"] as? Double { d.precipIntensityMax = pm}
                     if let acc = day["precipAccumulation"] as? Double { d.precipAccumulation = acc}
                     if let sr = day["sunriseTime"] as? Double {d.sunrise = sr}
                     if let ss = day["sunsetTime"] as? Double {d.sunset = ss}
+                    if let ws = day["windSpeed"] as? Double { d.windSpeed = ws }
+                    //windgust
+                    if let wb = day["windBearing"] as? Double { d.windBearing = wb }
                     if let cc = day["cloudCover"] as? Double { d.cloudCover = cc }
 
                     
@@ -140,7 +143,7 @@ class WeatherServiceDarksky {
                     if let s = hour["summary"] as? String { hr.summary = s }
                     if let i = hour["icon"] as? String {
                         let ii = i.replacingOccurrences(of: "-", with: "_")
-                        hr.icon = ii }
+                        hr.icon = DarkSkyTypes.DSIcons(rawValue: ii) }
                     if let pi = hour["precipIntencity"] as? Double { hr.precipIntensity = pi }
                     if let pp = hour["precipProbability"] as? Double { hr.precipProbability = pp }
                     if let pa = hour["precipAccumulation"] as? Double { hr.precipAccumulation = pa }
@@ -162,25 +165,40 @@ class WeatherServiceDarksky {
     }
     
     
-    public func evaluateCondition(probability: Double, intensity: Double, accumulation:Double, cover:Double) -> DarkSkyTypes.Condition {
+    public func evaluateCondition(probability: Double, temp:Double, intensity: Double, accumulation:Double, cover:Double, apiIcon:DarkSkyTypes.DSIcons?) -> DarkSkyTypes.Condition {
         var r = DarkSkyTypes.Condition.clear
         //input : 24hr equal values
-        
+    
         if cover <= 0.2 {
             r = .clear
         }else if cover > 0.2 {
-            r = .partially_cloudy
+            r = .partly_cloudy
         }else if cover > 0.6 {
             r = .cloudy
-        }else if probability > 0.2{
+        }
+        
+        if apiIcon == .fog {
+            r = .fog
+        }else if apiIcon == .wind {
+            r = .wind
+        }
+        
+        //TODO: add light_rain eval
+        if probability > 0.2{
             if accumulation > 1 && intensity > 1 {          //cm -> 0.2 inches / 3hrs
-                r = .mix
+                r = .sleet
             }else if accumulation > 1 {
                 r = .snow
             }else if intensity > 1 {
                 r = .rain
+                if temp < 0 {
+                    r = .freezing_rain
+                }else if apiIcon == .hail {
+                    r = .hail
+                }
             }
         }
+    
         return r
     }
     
@@ -193,16 +211,17 @@ public struct DarkSkyTypes {
     
     public enum DSIcons: String {
         //DS Api response string format has "-" separator -> needs to be replaced with matching "_" symbol
-        case clear_day, clear_night, rain, snow, sleet, wind, fog, cloudy, partly_cloudy_day, partly_cloudy_night
+        case clear_day, clear_night, rain, snow, sleet, hail, wind, fog, cloudy, partly_cloudy_day, partly_cloudy_night
     }
     
     public enum Condition: String {
         //evaluated condition
-        case clear, partially_cloudy, cloudy, small_rain, small_snow, rain, snow, mix, freezing_rain
+        //sleet: snow+rain
+        case clear, partly_cloudy, cloudy, fog, wind, light_rain, light_snow, rain, snow, sleet, hail, freezing_rain
     }
     
     public enum DSPrecipType: String {
-        case rain, snow, sleet
+        case rain, snow, sleet, freezing_rain
     }
     
     public struct DarkSkyDecodedForecast{
@@ -214,9 +233,10 @@ public struct DarkSkyTypes {
     
     public struct Currently{
         // ["currently"] -> [String:Any]
+        //currently block doesn't have precipAccumulation field
         public var time = 0.0
         public var summary = ""
-        public var icon:DSIcons = .partly_cloudy_day
+        public var icon:DSIcons? = .partly_cloudy_day
         public var precipIntensity = 0.0
         public var precipProbability = 0.0
         public var precipType: DSPrecipType?
@@ -236,14 +256,18 @@ public struct DarkSkyTypes {
         // ["daily"] -> [[String:Any]]
         public var time = 0.0
         public var summary = ""
-        public var icon = ""
+        public var icon:DSIcons? = .partly_cloudy_day
         public var temperatureHigh = 0.0
         public var temperatureLow = 0.0
+        public var precipProbability = 0.0
         public var precipIntensityMax = 0.0
-        public var precipAccumulation:Double?
+        public var precipAccumulation = 0.0
         public var precipType : DSPrecipType?
         public var sunrise = 0.0
         public var sunset = 0.0
+        public var windSpeed = 0.0
+        public var windGust = 0.0
+        public var windBearing = 0.0
         public var cloudCover = 0.0
     }
     
@@ -251,7 +275,7 @@ public struct DarkSkyTypes {
         // ["hourly"] -> [[]String:Any]
         public var time = 0.0
         public var summary = ""
-        public var icon = ""
+        public var icon:DSIcons? = .partly_cloudy_day
         public var precipIntensity = 0.0
         public var precipProbability = 0.0
         public var precipAccumulation = 0.0  //  snow accumulation: unit per hour
@@ -259,6 +283,7 @@ public struct DarkSkyTypes {
         public var temperature = 0.0
         public var apparentTemperature = 0.0
         public var windSpeed = 0.0
+        public var windGust = 0.0
         public var windBearing = 0.0
         public var cloudCover = 0.0
     }

@@ -14,15 +14,40 @@ class CitySearchVC: UITableViewController {
     let searchGeoCoder = CLGeocoder()
     var matchingItems: [CLPlacemark] = []
     var resultStrings:[String] = [String]()
+    //cant be init before actual assignemnt, BAD ACCESS: possible memory problem in CLPlacemark class
+    var choosenPlacemark:CLPlacemark?
     
     
-
+    
+    //search controller results to be handled by this VC
+    var searchController:UISearchController = UISearchController(searchResultsController: nil)
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
-
+        print("*CitySearchVC viewDidLoad()")
+        
+        //
+        searchController.searchResultsUpdater = self
+        if #available(iOS 9.1, *) {
+            searchController.obscuresBackgroundDuringPresentation = false
+        } else {
+            // Fallback on earlier versions
+        }
+        searchController.searchBar.placeholder = "City Name"
+       //recommended option for handling searchController dismiss, but DOES NOT work, calling <searchController.isActive=false> instead
+        //definesPresentationContext = true
+        self.tableView.tableHeaderView = searchController.searchBar
+        
         // Do any additional setup after loading the view.
     }
+    override func viewDidDisappear(_ animated: Bool) {
+        if self.searchController.isActive {
+            self.searchController.isActive = false
+        }
+        self.searchController.dismiss(animated: true, completion: nil)
+    }
+    
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
@@ -39,6 +64,25 @@ class CitySearchVC: UITableViewController {
         return cell
     }
     
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        //
+        self.searchController.isActive = false
+        //self.searchController.dismiss(animated: true, completion: nil)
+        
+        let weatherVC = storyboard?.instantiateViewController(withIdentifier: "weather_vc") as! WeatherVC
+        weatherVC.isCustomLocation = true
+        
+        //get location from choosen placemark
+        if let location = choosenPlacemark?.location as CLLocation?{
+            weatherVC.customLocation = location
+        }else{
+            weatherVC.isCustomLocation = false
+        }
+        
+        self.present(weatherVC, animated: true, completion: nil)
+
+        
+    }
 
    
 }
@@ -65,7 +109,9 @@ extension CitySearchVC: UISearchResultsUpdating {
                 [$0.locality, $0.administrativeArea, $0.country].flatMap{$0}.joined(separator: ", ")
             }
             )
-         print("placemarks:", placemarks)
+            debugPrint("placemarks:", placemarks)
+            self.choosenPlacemark = placemarks[0]
+            print(self.choosenPlacemark)
         }
      
 //        let mkSearchRec = MKLocalSearchRequest()

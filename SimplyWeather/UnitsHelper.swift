@@ -10,7 +10,7 @@ import Foundation
 
 class UnitsHelper {
     
-    public enum UntitsType:String {
+    public enum UnitSystems:String {
         // only for US locale
         case us
         // rest of the world, presumed to be CA-style metric
@@ -18,7 +18,7 @@ class UnitsHelper {
     }
     
     public struct UnitsStrings {
-        
+        var sys: UnitSystems
         var tempStr:String
         var speedStr:String
         var precipRainStr:String
@@ -26,9 +26,10 @@ class UnitsHelper {
         var pressureStr:String
         var distanceStr:String
         
-        init(type: UnitsHelper.UntitsType){
-            switch type {
+        init(system: UnitsHelper.UnitSystems){
+            switch system {
             case .us:
+                sys = .us
                 tempStr = "°F"
                 speedStr = "mph"
                 precipRainStr = "in"
@@ -37,6 +38,7 @@ class UnitsHelper {
                 distanceStr = "mi"
 
             case .ca:
+                sys = .ca
                 tempStr = "°C"
                 speedStr = "km/h"
                 precipRainStr = "mm"
@@ -47,24 +49,25 @@ class UnitsHelper {
         }
     }
     
-    class func formatPresipString(unitsType: UntitsType, prefix:String, value: Double, unit:String) -> String {
+    class func formatPresipString(uStrings: UnitsStrings, precipType:DarkSkyTypes.DSPrecipType, value: Double) -> String {
         var r = ""
-        if unitsType == .ca {
+        let unit = (precipType == .snow ) ? uStrings.precipSnowStr : uStrings.precipRainStr
+        
+        
+        if uStrings.sys == .ca {
             switch value {
-            case 0..<0.5 : r=""
-            case 0.5..<1 : r="\(prefix): <1 \(unit)"
-            case 1...2 : r="\(prefix): 1..2  \(unit)"
-            case 2... : r="\(prefix): "+String(format: "%.0f", value)+" \(unit)"
-            default: r="\(prefix): "+String(format: "%.0f", value)+" \(unit)"
+            case 0..<1 : r="\(precipType) <1 \(unit)"
+            case 1..<2 : r="\(precipType) 1..2  \(unit)"
+            case 2... : r="\(precipType) "+String(format: "%.0f", value)+" \(unit)"
+            default: r="\(precipType) "+String(format: "%.0f", value)+" \(unit)"
             }
         }
         else{ //us
             switch value {
-            case 0..<0.05 : r=""
-            case 0.05..<0.5 : r="\(prefix): <0.5 \(unit)"
-            case 0.5...1 : r="\(prefix): 0.5..1 \(unit)"
-            case 1... : r="\(prefix): "+String(format: "%.0f", value)+" \(unit)"
-            default: r="\(prefix): "+String(format: "%.0f", value)+" \(unit)"
+            case 0..<0.5 : r="\(precipType) <0.5 \(unit)"
+            case 0.5..<1 : r="\(precipType) 0.5..1 \(unit)"
+            case 1... : r="\(precipType) "+String(format: "%.0f", value)+" \(unit)"
+            default: r="\(precipType) "+String(format: "%.0f", value)+" \(unit)"
             }
         }
         return r
@@ -127,7 +130,7 @@ class UnitsHelper {
         
     }
     
-    class func dateFromUnixTime(utime: Double) -> Date {
+    class func dateStrFull(utime: Double) -> Date {
         let date = Date(timeIntervalSince1970: utime)
         let dateFormatter = DateFormatter()
         dateFormatter.dateStyle = .medium
@@ -136,17 +139,18 @@ class UnitsHelper {
     }
     
     // date as: "Monday"
-    class func formatDateEEEE(timeInterval: Double) -> String {
+    class func dateStrEEEE(timeInterval: Double) -> String {
         let date = Date(timeIntervalSince1970: timeInterval)
         let weekDay = Calendar.current.component(.weekday, from: date) - 1
         let weekDayStr = DateFormatter().weekdaySymbols[weekDay]
         return weekDayStr
     }
     
-    class func hourFromUnixTime(unixTime: Double) -> Int? {
+    //24hrs format HOUR
+    class func dateIntH(unixTime: Double) -> Int? {
         let date = Date(timeIntervalSince1970: unixTime)
         let formatter = DateFormatter()
-        formatter.dateFormat = "H" //24hrs format HOUR
+        formatter.dateFormat = "H"
         let str = formatter.string(from: date)
         if let int = Int(str) {
             return int
@@ -155,8 +159,18 @@ class UnitsHelper {
         }
     }
     
+    // time as 5:30am
+    class func dateStrHmma(unixTime: Double) -> String {
+        let date = Date(timeIntervalSince1970: unixTime)
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mma"
+        return formatter.string(from: date)
+    }
+    
+    
+    
     // date as: "Monday, Jan 01"
-    class func dateFromUnixTimeEMMMdd(timeInterval: Double) -> String {
+    class func dateStrEMMMdd(timeInterval: Double) -> String {
         let date = Date(timeIntervalSince1970: timeInterval)
         let formatter = DateFormatter()
         formatter.dateFormat = "E, MMM dd"
@@ -164,7 +178,8 @@ class UnitsHelper {
         return "\(str)"
     }
     
-    class func dateFromUnixTimeMMMMdyyyy(timeInterval: Double) -> String {
+    //date as January 1, 2001
+    class func dateStrMMMMdyyyy(timeInterval: Double) -> String {
         let date = Date(timeIntervalSince1970: timeInterval)
         let formatter = DateFormatter()
         formatter.dateFormat = "MMMM d, yyyy"

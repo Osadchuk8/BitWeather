@@ -42,13 +42,28 @@ class LocationService:NSObject {
         delayedCompletion=completion
     }
     
+    public func getCityName(location: CLLocation, completion: @escaping (String)->() ){
+        
+        geoCoder.reverseGeocodeLocation(location, completionHandler: {placemarks, error in
+            
+            if let e=error {
+                print("**reverseGeocodeLocation() -> error: \(e.localizedDescription)")
+                return
+            }
+            guard let addressDict = placemarks?[0].addressDictionary else {return}
+            if let city = addressDict["City"] as? String {
+                self.currentCity=city
+                print ("**currentCity=", self.currentCity)
+            }
+            completion(self.currentCity)
+        })
+    }
+    
     fileprivate func getCurrentCityName(completion: @escaping (String)->()){
         guard let loc = currentLocation else{
             return
         }
         geoCoder.reverseGeocodeLocation(loc, completionHandler: {placemarks, error in
-            
-            print("**reverseGeocodeLocation()")
             if let e=error {
                 print("**reverseGeocodeLocation() -> error: \(e.localizedDescription)")
                 return

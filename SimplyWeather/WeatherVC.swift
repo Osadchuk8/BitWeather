@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CoreLocation
 
 
 
@@ -42,9 +43,10 @@ class WeatherVC: UIViewController {
    
     
     @IBOutlet weak var lblSummaryHourly: UILabel!
-    @IBOutlet weak var lblFeelslike: UILabel!
     @IBOutlet weak var lblHumidity: UILabel!
     @IBOutlet weak var lblVisibility: UILabel!
+    @IBOutlet weak var lblSunRise: UILabel!
+    @IBOutlet weak var lblSunSet: UILabel!
     @IBOutlet weak var lblPressure: UILabel!
     @IBOutlet weak var lblWind: UILabel!
     
@@ -56,6 +58,10 @@ class WeatherVC: UIViewController {
     @IBOutlet weak var conView24Lead: NSLayoutConstraint!
     //
     
+    @IBOutlet weak var viewSearch: UIView!
+    @IBOutlet weak var searchContainer: UIView!
+    
+    @IBOutlet weak var conViewSearchTop: NSLayoutConstraint!
     
     
     //TODO: remove?
@@ -66,9 +72,16 @@ class WeatherVC: UIViewController {
     var locService = LocationService()
     var weatherService = WeatherServiceDarksky()
     var timeStamp:TimeInterval = Date().timeIntervalSince1970
-    var unitsType = UnitsHelper.UntitsType.ca
-    var currentUnits:UnitsHelper.UnitsStrings?
+    var unitSystem = UnitsHelper.UnitSystems.ca
+    var currentUnitStrings:UnitsHelper.UnitsStrings?
+    var isDark=false
+    var condition = DarkSkyTypes.Condition.clear
     
+    var searchController:UISearchController = UISearchController()
+    
+    //TODO: move to service ..
+    var customLocation = CLLocation()
+    var isCustomLocation = false
     
     // request counter
     var c = 0
@@ -81,27 +94,37 @@ class WeatherVC: UIViewController {
         super.viewDidLoad()
         
         NotificationCenter.default.addObserver(self, selector: #selector(appWillEnterForeground), name: .UIApplicationWillEnterForeground, object: nil)
-        // Do any additional setup after loading the view.
         
-        //get current location
-        //get city name
-        print("interval: \(timeStamp)")
+        //TODO: moving searchViewController to separate citySearchVC
+        /*
+         
+         let citySearchVC = storyboard!.instantiateViewController(withIdentifier: "city_search_vc") as! CitySearchVC
+        searchController = UISearchController(searchResultsController: citySearchVC)
+        searchController.searchResultsUpdater = citySearchVC
+        
+        let searchBar = searchController.searchBar
+        searchBar.backgroundColor = #colorLiteral(red: 0.4745098054, green: 0.8392156959, blue: 0.9764705896, alpha: 0)
+        searchContainer.addSubview(searchBar)
+        
+        self.definesPresentationContext = true
+        */
+        
         
         //get locale and set units:
-        
         if let countryCode = Locale.current.regionCode {
             if countryCode.contains("US") {
-                unitsType = .us
+                unitSystem = .us
             }else if countryCode.contains("CA"){
-                unitsType = .ca
+                unitSystem = .ca
             }else {
-                unitsType = .ca
+                unitSystem = .ca
             }
             
-            currentUnits = UnitsHelper.UnitsStrings(type: unitsType)
+            currentUnitStrings = UnitsHelper.UnitsStrings(system: unitSystem)
             
         }
         
+        //print("interval: \(timeStamp)")
     }
     
     override func viewDidDisappear(_ animated: Bool) {
@@ -113,39 +136,54 @@ class WeatherVC: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         
         //ui tweaks here
-        // set middel view
-        //conView24hTop.constant = 0
+        conViewSearchTop.constant = -viewSearch.frame.height
         conViewDetailTop.constant = -view24h.frame.height
-        
         activityIndicator.isHidden = true
-        
-        //TODO: remove?
-//        viewForecast.layer.borderWidth = 2.0
-//        viewForecast.layer.borderColor = #colorLiteral(red: 0.921431005, green: 0.9214526415, blue: 0.9214410186, alpha: 0.5)
-//        lblCurrentMonth.layer.borderColor = #colorLiteral(red: 0.921431005, green: 0.9214526415, blue: 0.9214410186, alpha: 0.5)
-//        lblCurrentMonth.layer.borderWidth = 2.0
-        
         debugPrint("viewDidAppear()...")
         requestLocationWeather()
     }
     
+    @IBAction func onTapSearch(_ sender: Any) {
+        print("onTapSearch()")
+        
+        let vc = storyboard!.instantiateViewController(withIdentifier: "city_search_vc") as! CitySearchVC
+        self.present(vc, animated: true, completion: nil)
+        
+        //conViewSearchTop.constant = 0
+        //GfxHelper.animateViewToggle(view: self.view, duration: 0.5, completion: nil)
+    }
+    
+    @IBAction func onTapSearchDone(_ sender: Any) {
+        conViewSearchTop.constant = -80
+        GfxHelper.animateViewToggle(view: self.view, duration: 0.2, completion: nil)
+    }
+    
     @IBAction func onTapExpand(_ sender: UIButton) {
-        btnExpandMiddleView.imageView?.transform = CGAffineTransform(scaleX: -1,y: 1)
         toggleView24ViewDetails()
-        GfxHelper.animateViewToggle(view: self.view, duration: 0.5, completion: nil)
+        GfxHelper.animateViewToggle(view: self.view, duration: 0.2, completion: nil)
     }
     
     func toggleView24ViewDetails(){
         if conViewDetailTop.constant == 0 {
-           conViewDetailTop.constant = -view24h.frame.height
+            //detail view is visible, hiding it:
+            conViewDetailTop.constant = -view24h.frame.height
+            btnExpandMiddleView.setImage(#imageLiteral(resourceName: "b_arrow_down"), for: .normal)
         }else{
-           conViewDetailTop.constant = 0
+            //deatil view non visible: showing it
+            conViewDetailTop.constant = 0
+            btnExpandMiddleView.setImage(#imageLiteral(resourceName: "b_arrow_up"), for: .normal)
+
         }
     }
     
     
     //TODO: REMOVE DEBUG
     @IBAction func onTapRefresh(_ sender: Any) {
+        
+        let nextVC = storyboard!.instantiateViewController(withIdentifier: "weather_main_vc") as? WeatherMainVC
+        self.present(nextVC!, animated: true, completion: nil)
+        
+        
         print("onTapRefresh()")
         let bgarray = [#imageLiteral(resourceName: "bg_clear_day"), #imageLiteral(resourceName: "bg_cloudy_day"), #imageLiteral(resourceName: "bg_clear_night"), #imageLiteral(resourceName: "bg_cloudy_night"), #imageLiteral(resourceName: "bg_partially_cloudy_day") ]
         let currentImg = iv_backgr.image
@@ -159,39 +197,43 @@ class WeatherVC: UIViewController {
     }
     
     
-    @IBAction func onTapSearch(_ sender: Any) {
-        print("onTapSearch()")
-    }
+  
     
     
     
-    fileprivate func requestLocationWeather() {
+    public func requestLocationWeather() {
         
         activityIndicator.isHidden = false
         activityIndicator.startAnimating()
        
-        
         //get location and city:
         timeStamp = Date().timeIntervalSince1970 //request timestamp
-       
-        //TODO: remove?
-       // let monthDay = UnitsHelper.formatDateMMMMdyyyy(timeInterval: timeStamp)
-        //lblCurrentMonth.text = "\(monthDay)"
-        
-        locService.getCurrentLocation {
-            str in
-            self.lblCityName.text=str
+    
+        if isCustomLocation {
+            debugPrint(customLocation)
+            locService.getCityName(location: self.customLocation){
+                str in
+                self.lblCityName.text=str
+                self.weatherService.requestWeather(units: self.unitSystem, location: self.customLocation, completion: self.updateWeatherDisplay )
+                
+            }
             
-            //after we have location -> getting the weather
-            if let loc = self.locService.currentLocation {
-                self.weatherService.requestWeather(units: self.unitsType, location: loc, completion: self.updateWeatherDisplay )
+        }else{
+            locService.getCurrentLocation {
+                str in
+                self.lblCityName.text=str
+                
+                //after we have location -> getting the weather
+                
+                if let loc = self.locService.currentLocation {
+                    self.weatherService.requestWeather(units: self.unitSystem, location: loc, completion: self.updateWeatherDisplay )
+                }
             }
         }
+      
     }
     
    
-    
-    
     func appWillEnterForeground(){
         print("** appWillEnterForeground(): \(c)")
         let stamp2 = Date().timeIntervalSince1970
@@ -211,6 +253,171 @@ class WeatherVC: UIViewController {
         // Dispose of any resources that can be recreated.
     }
 
+    private func displayCurrentlySection(currently: DarkSkyTypes.Currently){
+        // main area
+        self.lblCurrentCondition.text = currently.summary
+        self.lblCurrentTemp.text = String(format: "%.0f", currently.temperature)+self.currentUnitStrings!.tempStr
+        
+        var accumulation = 0.0
+        
+        //TODO: check this accumulation value???
+        if let pType = currently.precipType {
+            accumulation = (pType == DarkSkyTypes.DSPrecipType.snow) ? 2.0 : 0.0
+        }
+        let condition = self.weatherService.evaluateCondition(probability: currently.precipProbability, temp: currently.temperature, intensity: currently.precipIntensity, accumulation: accumulation, cover: currently.cloudCover, apiIcon: currently.icon)
+        //set current condition
+        self.condition = condition
+        let windStr = "\( UnitsHelper.convDegreesToCardinal(degrees: currently.windBearing) ) " +
+            String(format: "%.0f", currently.windSpeed) + self.currentUnitStrings!.speedStr
+        self.displayEvaluatedCondition(isDark: self.isDark, condition: condition, probValue: currently.precipProbability, rainValue: currently.precipIntensity, snowValue: accumulation, windString: windStr, targetIconView: self.ivCurrentIcon, targetPrecipitationLabel: self.lblCurrentConditionDetail)
+        
+        //details area
+        
+        self.lblHumidity.text = String(format: "%.0f", currently.humidity) + " %"
+        self.lblVisibility.text = String(format: "%.0f", currently.visibility) + self.currentUnitStrings!.distanceStr
+        self.lblPressure.text = String(format: "%.0f", currently.pressure) + self.currentUnitStrings!.pressureStr
+        self.lblWind.text = windStr
+    }
+    
+     func updateBackgroundDetectDark(dailyBlock: [DarkSkyTypes.Daily]){
+        
+        
+        //detect dark
+        if dailyBlock.count>0 {
+            let sr = dailyBlock[0].sunrise
+            let ss = dailyBlock[0].sunset
+            
+            //detail sunrise, sunset times
+            self.lblSunSet.text = UnitsHelper.dateStrHmma(unixTime: ss)
+            self.lblSunRise.text = UnitsHelper.dateStrHmma(unixTime: sr)
+            
+            self.isDark = (self.timeStamp > sr && self.timeStamp < ss) ? false : true
+            debugPrint("stamp: \(self.timeStamp); isDark: \(self.isDark) ; sr: \(sr); ss:\(ss)")
+            
+            switch self.condition {
+            case .clear :
+                self.iv_backgr.image = !isDark ?  #imageLiteral(resourceName: "bg_clear_day") : #imageLiteral(resourceName: "bg_clear_night")
+            case .partly_cloudy, .wind:
+                self.iv_backgr.image = !isDark ?  #imageLiteral(resourceName: "bg_partially_cloudy_day") : #imageLiteral(resourceName: "bg_partially_cloudy_night")
+            case .cloudy, .fog, .freezing_rain, .sleet, .rain, .light_rain, .light_snow, .snow, .hail:
+                self.iv_backgr.image = !isDark ?  #imageLiteral(resourceName: "bg_cloudy_day") : #imageLiteral(resourceName: "bg_cloudy_night")
+            }
+        }
+        
+        self.displayEvaluatedIcon(isDark: self.isDark, condition: self.condition, targetIconView: self.ivCurrentIcon)
+        
+        // min/max temp from daily[0]
+        self.lblCurrentTempLow.text = String(format: "%.0f", dailyBlock[0].temperatureLow)
+        self.lblCurrentTempHigh.text = String(format: "%.0f", dailyBlock[0].temperatureHigh)
+    
+    }
+    
+    func display6daySection(dailyBlock: [DarkSkyTypes.Daily]){
+        if dailyBlock.count >= 6 {
+            
+            for tag in 1...6 {
+                if let fv = self.view.viewWithTag(tag) as? ForecastView {
+                    let day = dailyBlock[tag] //( from next day in dataobject ["days"] index==1)
+                    let dayName = UnitsHelper.dateStrEMMMdd(timeInterval: day.time)
+                    fv.lblWeekDayName.text = "\(dayName)"
+                    
+                    let wind = "\( UnitsHelper.convDegreesToCardinal(degrees: day.windBearing) ) " +
+                        String(format: "%.0f", day.windSpeed) + self.currentUnitStrings!.speedStr
+                    let condition = weatherService.evaluateCondition(probability: day.cloudCover, temp: day.temperatureHigh, intensity: day.precipIntensityMax, accumulation: day.precipAccumulation, cover: day.cloudCover, apiIcon: day.icon!)
+                    displayEvaluatedCondition(isDark: false, condition: condition, probValue: day.precipProbability, rainValue: day.precipIntensityMax, snowValue: day.precipAccumulation, windString: wind, targetIconView: fv.ivIcon, targetPrecipitationLabel: fv.lblPresipitation)
+                    fv.lblTempHigh.text = UnitsHelper.formatTemperatureString(value: day.temperatureHigh, unit: "")
+                    fv.lblTempLow.text = UnitsHelper.formatTemperatureString(value: day.temperatureLow, unit: "")
+                }
+            }
+        }
+    }
+    
+    func display24hSection(hourlyBlock: [DarkSkyTypes.Hourly], summary: String?){
+        
+        self.lblSummaryHourly.text = summary ?? ""
+        // next day parts = current (6hrs) + 24 -> min 30 entries
+        if hourlyBlock.count < 31 { return }
+        //partitioning:
+        guard let currentHour =  UnitsHelper.dateIntH(unixTime: hourlyBlock[0].time) else { return }
+        var startIndex:Int
+        var partTitleArr:[String]
+        var darkArr:[Bool]
+        
+        switch (currentHour){
+        case 0...5:
+            startIndex = 5 - currentHour + 1
+            darkArr = [false, false, true, true]
+            partTitleArr = ["morning", "afternoon", "evening", "night"]
+        case 06...11:
+            startIndex = 11 - currentHour + 1
+            darkArr = [false, true, true, false]
+            partTitleArr = ["afternoon", "evening", "night", "morning"]
+        case 12...17:
+            startIndex = 18 - currentHour + 1
+            darkArr = [true, true, false, false]
+            partTitleArr = ["evening", "night","morning", "afternoon"]
+        case 18...23:
+            startIndex = 23 - currentHour + 1
+            darkArr = [true, false, false, true]
+            partTitleArr = ["night", "morning", "afternoon", "evening"]
+        default:
+            print("hour out of 24hr range...")
+            return
+        }
+        
+        for tag in 11...14 {
+            if let dqv = self.view.viewWithTag(tag) as? DayQuaterView {
+                let iFirst = startIndex + ( tag - 11 ) * 6
+                let iLast = iFirst + 5
+                
+                var mIntensity = 0.0
+                var mTemp = 0.0
+                var accumulation = 0.0
+                var mProbability = 0.0
+                var mCover = 0.0
+                var mSpeed = 0.0
+                var mBearing = 0.0
+                
+                for i in iFirst...iLast {
+                    mIntensity += hourlyBlock[i].precipIntensity/6
+                    mTemp += hourlyBlock[i].temperature/6
+                    mProbability += hourlyBlock[i].precipProbability/6
+                    mCover += hourlyBlock[i].cloudCover/6
+                    accumulation += hourlyBlock[i].precipAccumulation
+                    mSpeed += hourlyBlock[i].windSpeed/6
+                    mBearing = hourlyBlock[i].windBearing/6
+                }
+                
+                dqv.lblDayQuaterTitle.text =  partTitleArr[tag-11]
+                self.isDark = darkArr[tag-11]
+                dqv.lblPartTemp.text = UnitsHelper.formatTemperatureString(value: mTemp, unit: "")
+                dqv.lblPartDescr.text = "\(hourlyBlock[iFirst].summary)"
+                
+                let wind = "\( UnitsHelper.convDegreesToCardinal(degrees: mBearing) ) " +
+                    String(format: "%.0f", mSpeed) + self.currentUnitStrings!.speedStr
+                
+                let condition = self.weatherService.evaluateCondition(probability: mProbability, temp: mTemp, intensity: mIntensity*4, accumulation: accumulation*4, cover: mCover, apiIcon: hourlyBlock[iFirst].icon)
+                self.displayEvaluatedCondition(isDark:self.isDark, condition:condition, probValue: mProbability, rainValue:mIntensity, snowValue: accumulation, windString: wind, targetIconView: dqv.ivPartIcon, targetPrecipitationLabel: dqv.lblPartDescr)
+                
+                //precip peaks display
+                let pSet : Set<DarkSkyTypes.Condition> = [.freezing_rain, .light_rain, .light_snow, .rain, .snow, .hail, .sleet ]
+                if pSet.contains(condition){
+                    var value =  mIntensity; if condition == .snow  || condition == .light_snow { value = accumulation }
+                    let level = value / 20 + 0.1
+                    let view = dqv.vPartLevel
+                    let h = (view?.frame.height)! * CGFloat(level)
+                    let w = (view?.frame.width)!
+                    
+                    let rect = CGRect(x: 0, y: 0, width: w, height: h)
+                    let pView = UIView(frame: rect)
+                    pView.backgroundColor = #colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1)
+                    view?.addSubview(pView)
+                }
+                
+            }
+        }
+    }
+    
     private func updateWeatherDisplay(forecast: DarkSkyTypes.DarkSkyDecodedForecast) {
         
         DispatchQueue.main.async {
@@ -219,160 +426,50 @@ class WeatherVC: UIViewController {
             
             // CURRENTLY
             guard let currently = forecast.currentlyPoint else {return}
+            self.displayCurrentlySection(currently: currently)
             
-            self.lblCurrentCondition.text = currently.summary
-            self.ivCurrentIcon.image = GfxHelper.scaledImage(image: UIImage(named: "\(currently.icon.rawValue)"), newFrame: self.ivCurrentIcon.frame)
-           
+            guard let dailyBlock = forecast.dailyBlock else {return}
+            self.updateBackgroundDetectDark(dailyBlock: dailyBlock)
+            self.display6daySection(dailyBlock: dailyBlock)
             
-            //TODO: add condition: (OR) IF freezing AND rain -> set "freezing rain"
-            // check for preciptype, precize condition info:
-            if let pt = currently.precipType?.rawValue as String? {
-                self.lblCurrentCondition.text = pt
-                if currently.precipType == DarkSkyTypes.DSPrecipType.sleet {
-                    self.lblCurrentCondition.text = "freezing rain"
-                    self.ivCurrentIcon.image = GfxHelper.scaledImage(image: UIImage(named: "freezing-rain"), newFrame: self.ivCurrentIcon.frame)
-                }
-            }
-            
-            if currently.precipIntensity > 0.2, currently.precipProbability > 0.3 {
-                self.lblCurrentConditionDetail.text = UnitsHelper.formatPresipString(unitsType: self.unitsType, prefix: "", value: currently.precipIntensity, unit: self.currentUnits!.precipRainStr)
-            }
-            self.lblCurrentTemp.text = String(format: "%.0f", currently.temperature)+self.currentUnits!.tempStr
-            self.lblCurrentTempLow.text = String(format: "%.0f", currently.temperature)
-            self.lblFeelslike.text = "\(currently.apparentTemperature)"
-            self.lblHumidity.text = "\(currently.humidity)" + " %"
-            self.lblPressure.text = "\(currently.pressure)" + self.currentUnits!.pressureStr
-            self.lblWind.text = "\( UnitsHelper.convDegreesToCardinal(degrees: currently.windBearing) ) " + "\(currently.windSpeed)" + self.currentUnits!.speedStr
-            self.lblVisibility.text = "\(currently.visibility)" + self.currentUnits!.distanceStr
-            
-            //DAILY
-            guard let daily = forecast.dailyBlock else {return}
-            
-            //some data for current day from forecast array[0]
-            self.lblCurrentTempLow.text = "⬇︎ \t"+String(format: "%.0f", daily[0].temperatureLow)
-            self.lblCurrentTempHigh.text = "⬆︎ \t"+String(format: "%.0f", daily[0].temperatureHigh)
-            
-            //TODO: background pic
-            //sun times for bg pic
-            if daily.count>0 {
-                let sr = daily[0].sunrise
-                let ss = daily[0].sunset
-                debugPrint("stamp: \(self.timeStamp); sr: \(sr); ss:\(ss)")
-                
-                switch currently.icon {
-                case .clear_day: self.iv_backgr.image = #imageLiteral(resourceName: "bg_clear_day")
-                case .clear_night: self.iv_backgr.image = #imageLiteral(resourceName: "bg_clear_night")
-                case .partly_cloudy_day: self.iv_backgr.image = #imageLiteral(resourceName: "bg_partially_cloudy_day")
-                case .partly_cloudy_night: self.iv_backgr.image = #imageLiteral(resourceName: "bg_partially_cloudy_night")
-                case .wind: (self.timeStamp > sr && self.timeStamp < ss) ? (self.iv_backgr.image = #imageLiteral(resourceName: "bg_partially_cloudy_day") ): (self.iv_backgr.image = #imageLiteral(resourceName: "bg_partially_cloudy_night"))
-                default: (self.timeStamp > sr && self.timeStamp < ss) ? (self.iv_backgr.image = #imageLiteral(resourceName: "bg_cloudy_day")) : (self.iv_backgr.image = #imageLiteral(resourceName: "bg_cloudy_night"))
-                }
-                
-            }
-            
-            // forecast area
-            if daily.count >= 6 {
-                
-                for tag in 1...6 {
-                    if let fv = self.view.viewWithTag(tag) as? ForecastView {
-                        
-                        let day = daily[tag] //( from next day in dataobject ["days"] index==1)
-                        let dayName = UnitsHelper.dateFromUnixTimeEMMMdd(timeInterval: day.time)
-                        fv.lblWeekDayName.text = "\(dayName)"
-                        
-                        //TODO: figure out 24 hr precipitation
-                        if let acc = day.precipAccumulation {
-                            //we have accumulation in CM or IN (snow 24hrs)
-                            //fv.lblPresipitation.text = String(format: "%.0f", acc)+self.u!.precipSnowStr
-                            fv.lblPresipitation.text = UnitsHelper.formatPresipString(unitsType: self.unitsType, prefix:"snow", value: acc, unit:self.currentUnits!.precipSnowStr)
-                        }else{
-                            //rain in mm/hr or in/hr
-                            fv.lblPresipitation.text = UnitsHelper.formatPresipString(unitsType: self.unitsType, prefix: "rain", value:day.precipIntensityMax, unit:self.currentUnits!.precipRainStr)
-                        }
-                        
-                       // fv.lblTempHigh.text =  String(format: "%.0f", day.dTemperatureHigh)
-                        fv.lblTempHigh.text = UnitsHelper.formatTemperatureString(value: day.temperatureHigh, unit: "")
-                        fv.lblTempLow.text = String(format: "%.0f", day.temperatureLow)
-                        
-                        let im = UIImage(named: "\(day.icon)")
-                        let img = GfxHelper.scaledImage(image: im, newFrame: fv.ivIcon.frame)
-                        fv.ivIcon.image = img
-                    }
-                }
-            }
-            
-            // 6hrs x 4 parts, inclusive: night(00...05), morning(06...11), afternoon(12...17), evening(18...23)
-            guard let hourly = forecast.hourlyBlock else { return }
-            // next day parts = current (6hrs) + 24 -> min 30 entries
-            if hourly.count < 31 { return }
-            //partitioning:
-            guard let currentHour =  UnitsHelper.hourFromUnixTime(unixTime: hourly[0].time) else { return }
-            var startIndex:Int
-            var partTitleArr:[String]
-            
-            switch (currentHour){
-            case 0...5:
-                startIndex = 5 - currentHour + 1
-                partTitleArr = ["morning", "afternoon", "evening", "night"]
-            case 06...11:
-                startIndex = 11 - currentHour + 1
-                partTitleArr = ["afternoon", "evening", "night", "morning"]
-            case 12...17:
-                startIndex = 18 - currentHour + 1
-                partTitleArr = ["evening", "night","morning", "afternoon"]
-            case 18...23:
-                startIndex = 23 - currentHour + 1
-                partTitleArr = ["night", "morning", "afternoon", "evening"]
-            default:
-                print("hour out of 24hr range...")
-                return
-            }
-            
-            for tag in 11...14 {
-                if let dqv = self.view.viewWithTag(tag) as? DayQuaterView {
-                    let iFirst = startIndex + ( tag - 11 ) * 6
-                    let iLast = iFirst + 5
-                    
-                    var mIntensity = 0.0
-                    var mTemp = 0.0
-                    var accumulation = 0.0
-                    var mProbability = 0.0
-                    var mCover = 0.0
-                    
-                    for i in iFirst...iLast {
-                        mIntensity += hourly[i].precipIntensity/6
-                        mTemp += hourly[i].temperature/6
-                        mProbability += hourly[i].precipProbability/6
-                        mCover += hourly[i].cloudCover/6
-                        accumulation += hourly[i].precipAccumulation
-                    }
-                    
-                  
-                    
-                    dqv.lblDayQuaterTitle.text =  partTitleArr[tag-11]
-                    dqv.lblPartTemp.text = UnitsHelper.formatTemperatureString(value: mTemp, unit: "")
-                    
-                    dqv.ivPartIcon.image = GfxHelper.scaledImage(image: UIImage(named: hourly[iFirst].icon), newFrame: dqv.ivPartIcon.frame)
-                    dqv.lblPartDescr.text = "\(hourly[iFirst].summary)"
-                    
-                    print("precipType: \(hourly[iFirst].precipType), accumulation: \(accumulation), mIntensity: \(mIntensity)")
-                    
-                    
-                    if hourly[iFirst].precipType == DarkSkyTypes.DSPrecipType.snow {
-                        print("IF: precip: snow")
-                        let str = UnitsHelper.formatPresipString(unitsType: self.unitsType, prefix: "", value: accumulation, unit: self.currentUnits!.precipSnowStr)
-                        print("str: \(str)")
-                        dqv.lblPartDescr.text = str
-                    }else if hourly[iFirst].precipType == DarkSkyTypes.DSPrecipType.rain {
-                        print("IF: precip: rain")
-                        dqv.lblPartDescr.text = UnitsHelper.formatPresipString(unitsType: self.unitsType, prefix: "", value: mIntensity, unit: self.currentUnits!.precipRainStr)
-                    }
-                }
-            }
+            guard let hourlyBlock = forecast.hourlyBlock else {return}
+            self.display24hSection(hourlyBlock: hourlyBlock, summary: forecast.summaryNextHours)
             
         }
+        
+    }
+    
+    private func displayEvaluatedIcon(isDark:Bool, condition: DarkSkyTypes.Condition, targetIconView: UIImageView){
+        
+        //icon
+        if condition == .clear || condition == .partly_cloudy {
+            let img:UIImage?
+            if isDark  {
+                img = UIImage(named: "\(condition.rawValue)"+"_night")
+            }else{
+                img = UIImage(named: "\(condition.rawValue)"+"_day")
+            }
+            targetIconView.image = GfxHelper.scaledImage(image: img, newFrame: targetIconView.frame)
+        }else{
+            targetIconView.image = GfxHelper.scaledImage(image: UIImage(named: "\(condition.rawValue)"), newFrame: targetIconView.frame)
+        }
+        
     }
 
+    private func displayEvaluatedCondition(isDark:Bool, condition: DarkSkyTypes.Condition,probValue:Double, rainValue:Double, snowValue:Double, windString:String, targetIconView: UIImageView, targetPrecipitationLabel:UILabel){
+        
+        displayEvaluatedIcon(isDark: isDark, condition: condition, targetIconView: targetIconView)
+       
+        switch condition{
+        case DarkSkyTypes.Condition.clear, .partly_cloudy, .cloudy, .wind:
+            targetPrecipitationLabel.text = "\( String(format: "%0.f",  probValue*100) )%"
+        case .fog:
+            targetPrecipitationLabel.text = "fog"
+        case DarkSkyTypes.Condition.light_rain, .rain, .freezing_rain, .sleet, .light_snow, .snow, .hail:
+            let precip = DarkSkyTypes.DSPrecipType(rawValue: condition.rawValue)
+            targetPrecipitationLabel.text = "\(UnitsHelper.formatPresipString(uStrings: self.currentUnitStrings!, precipType: precip!, value: rainValue) )"
+        }
+    }
 
 //CLASS END
 }
@@ -390,6 +487,8 @@ class ForecastView: UIView {
     @IBOutlet weak var lblTempHigh: UILabel!
     @IBOutlet weak var lblTempLow: UILabel!
     @IBOutlet weak var ivIcon: UIImageView!
+   // @IBOutlet weak var vPrecipLevel: UIView!
+    
     
     
 //    override func draw(_ rect: CGRect) {

@@ -17,6 +17,7 @@
 		077057A821953BB90072E769 /* WeatherServiceDarksky.swift in Sources */ = {isa = PBXBuildFile; fileRef = 077057A721953BB90072E769 /* WeatherServiceDarksky.swift */; };
 		077057AA2197C54E0072E769 /* WeatherVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 077057A92197C54E0072E769 /* WeatherVC.swift */; };
 		077FCBDF21992A5A00568362 /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 077FCBDE21992A5A00568362 /* LocationService.swift */; };
+		0789EB4521E9A85200EB7925 /* WeatherServiceDarkskyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0789EB4421E9A85200EB7925 /* WeatherServiceDarkskyTests.swift */; };
 		078F9A1C20215CEA0083F83C /* todo.txt in Resources */ = {isa = PBXBuildFile; fileRef = 078F9A1B20215CEA0083F83C /* todo.txt */; };
 		079CD283206FE8BF00EDEC2E /* Storyboard2.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 079CD282206FE8BF00EDEC2E /* Storyboard2.storyboard */; };
 		07A0A67C1FD10C3800ACD614 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07A0A67B1FD10C3800ACD614 /* AppDelegate.swift */; };
@@ -56,6 +57,7 @@
 		077057A721953BB90072E769 /* WeatherServiceDarksky.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherServiceDarksky.swift; sourceTree = "<group>"; };
 		077057A92197C54E0072E769 /* WeatherVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherVC.swift; sourceTree = "<group>"; };
 		077FCBDE21992A5A00568362 /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
+		0789EB4421E9A85200EB7925 /* WeatherServiceDarkskyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherServiceDarkskyTests.swift; sourceTree = "<group>"; };
 		078F9A1B20215CEA0083F83C /* todo.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = todo.txt; sourceTree = "<group>"; };
 		079CD282206FE8BF00EDEC2E /* Storyboard2.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Storyboard2.storyboard; sourceTree = "<group>"; };
 		07A0A6781FD10C3800ACD614 /* SimplyWeather.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SimplyWeather.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -147,6 +149,7 @@
 			isa = PBXGroup;
 			children = (
 				07A0A6901FD10C3800ACD614 /* SimplyWeatherTests.swift */,
+				0789EB4421E9A85200EB7925 /* WeatherServiceDarkskyTests.swift */,
 				07A0A6921FD10C3800ACD614 /* Info.plist */,
 			);
 			path = SimplyWeatherTests;
@@ -319,6 +322,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0789EB4521E9A85200EB7925 /* WeatherServiceDarkskyTests.swift in Sources */,
 				07A0A6911FD10C3800ACD614 /* SimplyWeatherTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
