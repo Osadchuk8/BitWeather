@@ -1,0 +1,15 @@
+
+
+NAME
+
+ 1: SpeedyWeather
+-xd : TinyWeather
+-xp: InstaWeather
+
+xx flash weather
+-ok: PromptlyWeather -too long
+-ok: bitWeather
+
+ 
+
+
