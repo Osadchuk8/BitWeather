@@ -15,5 +15,6 @@ Lightweight  and simple weather app with all essential information on a single s
 Data is provided by DarkSky API, which is backed-up by a wide range of weather data sources of global and regional character.
 
 
-Privacy Policy:
-https://github.com/Osadchuk8/BitWeather/PrivacyPolicy.html
+[Privacy Policy:] (PrivacyPolicy)
+
+
