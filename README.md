@@ -17,4 +17,8 @@ Data is provided by DarkSky API, which is backed-up by a wide range of weather d
 
 [ Privacy Policy: ] ( ./PrivacyPolicy )
 
+[I'm an inline-style link](https://www.google.com)
+
+
+
 
