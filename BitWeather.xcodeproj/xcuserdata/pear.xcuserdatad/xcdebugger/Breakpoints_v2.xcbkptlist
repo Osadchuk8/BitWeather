@@ -170,14 +170,46 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "BitWeather/WeatherVC.swift"
-            timestampString = "571633990.0592279"
+            filePath = "BitWeather/LocationService.swift"
+            timestampString = "573450889.601234"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "200"
-            endingLineNumber = "200"
-            landmarkName = "unknown"
-            landmarkType = "0">
+            startingLineNumber = "41"
+            endingLineNumber = "41"
+            landmarkName = "getCurrentLocation(completionOk:completionError:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "BitWeather/LocationService.swift"
+            timestampString = "573450889.601346"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "90"
+            endingLineNumber = "90"
+            landmarkName = "checkAuth()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "BitWeather/WeatherVC.swift"
+            timestampString = "573450889.6014349"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "278"
+            endingLineNumber = "278"
+            landmarkName = "requestLocationWeather()"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

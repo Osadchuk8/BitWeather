@@ -37,7 +37,7 @@ class UnitsHelper {
                 precipSnowStr = "in"
                 pressureStr = "mb"
                 distanceStr = "mi"
-
+                
             case .ca:
                 sys = .ca
                 tempStr = "°C"
@@ -46,15 +46,13 @@ class UnitsHelper {
                 precipSnowStr = "cm"
                 pressureStr = "mb"
                 distanceStr = "km"
-                
             }
-            
             
         }
     }
     
   
-    
+    //optional
     class func convertKelvins(temp:Float, toMetric:Bool) -> (Float) {
         // from K to C or F
         var r:Float = 0
@@ -68,11 +66,13 @@ class UnitsHelper {
         return r
     }
     
+    //optional
     class func convertFarenheit(temp:Double) -> (Double) {
         // from F to C
         return (temp-32)*(5/9)
     }
     
+    //optional
     class func convertMetersPerSec(speed:Float, isMetric:Bool) -> (Float) {
         // from m/s to kph or mph
         var r:Float = 0
@@ -104,6 +104,7 @@ class UnitsHelper {
         
     }
     
+    //optional
     class func dateStrFull(utime: Double) -> Date {
         let date = Date(timeIntervalSince1970: utime)
         let dateFormatter = DateFormatter()
@@ -112,6 +113,7 @@ class UnitsHelper {
         return date
     }
     
+    //optional
     // date as: "Monday"
     class func dateStrEEEE(timeInterval: Double) -> String {
         let date = Date(timeIntervalSince1970: timeInterval)
@@ -121,7 +123,11 @@ class UnitsHelper {
     }
     
     //24hrs format HOUR
-    class func dateIntH(unixTime: Double) -> Int? {
+    class func hourFrom(unixTime: Double) -> Int? {
+        //Calendar approach:
+        //let hour = Calendar.current.component(.hour, from: Date())
+        //*
+        //using Date:
         let date = Date(timeIntervalSince1970: unixTime)
         let formatter = DateFormatter()
         formatter.dateFormat = "H"
@@ -133,7 +139,9 @@ class UnitsHelper {
         }
     }
     
-    class func dateIntHrTimeZone(unixTime: Double, zone: TimeZone) -> Int?{
+    // time for specific non-local TZ?
+    
+    class func hourNonLocalFrom(unixTime: Double, zone: TimeZone) -> Int?{
         let date = Date(timeIntervalSince1970: unixTime)
         let formatter = DateFormatter()
         formatter.timeZone = zone
@@ -147,7 +155,7 @@ class UnitsHelper {
     }
     
     // time as 5:30am
-    class func dateStrHmma(unixTime: Double) -> String {
+    class func hourMinutesFormattedFrom(unixTime: Double) -> String {
         let date = Date(timeIntervalSince1970: unixTime)
         let formatter = DateFormatter()
         formatter.dateFormat = "h:mma"
@@ -157,17 +165,18 @@ class UnitsHelper {
     
     
     // date as: "Monday, Jan 01"
-    class func dateStrEMMMdd(timeInterval: Double) -> String {
-        let date = Date(timeIntervalSince1970: timeInterval)
+    class func dateStrEMMMddFrom(unixTime: Double) -> String {
+        let date = Date(timeIntervalSince1970: unixTime)
         let formatter = DateFormatter()
         formatter.dateFormat = "E, MMM dd"
         let str = formatter.string(from: date)
         return "\(str)"
     }
     
+    //optional
     //date as January 1, 2001
-    class func dateStrMMMMdyyyy(timeInterval: Double) -> String {
-        let date = Date(timeIntervalSince1970: timeInterval)
+    class func dateStrMMMMdyyyyFrom(unixTime: Double) -> String {
+        let date = Date(timeIntervalSince1970: unixTime)
         let formatter = DateFormatter()
         formatter.dateFormat = "MMMM d, yyyy"
         let str = formatter.string(from: date)

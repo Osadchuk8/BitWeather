@@ -81,36 +81,46 @@ class SearchVC: UIViewController, UISearchBarDelegate {
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         
-        guard let str = searchBar.text else {return}
-        
-        if str.count<1 {
+        if searchText.count<1 {
             placeMarkDict.removeAll()
+            tableView.reloadData()
+        }else if searchText.count<3 {
+            //don't geocode less then 3 chars
+            return
         }else{
-            
             if geoCoder.isGeocoding {
                 geoCoder.cancelGeocode()
             }
-            //print(".. searchBarText to geocode: ", str)
-            geoCoder.geocodeAddressString(str) {placemarks, error in
+            print("\n .. searchBarText to geocode: ", searchText)
+           
+            geoCoder.geocodeAddressString(searchText) {placemarks, error in
                 guard let placemarks = placemarks, error == nil, placemarks.count>0
                     else {
                         //print("placemark not found")
                         return
                 }
                 let pMark = placemarks[0]
-                
-                guard let locality = pMark.locality, let area = pMark.administrativeArea, let country = pMark.country, locality.count > 2, area.count > 1 else {
+                print("pMark:  \(pMark)")
+                guard let locality = pMark.locality, let area = pMark.administrativeArea, let country = pMark.country, locality.count > 2 else {
                     return
                 }
+                
+                if locality.prefix(3).lowercased() != searchText.prefix(3).lowercased()
+                    && area.prefix(3).lowercased() != searchText.prefix(3).lowercased(){
+                    print(locality.prefix(3).lowercased(), " :(!=): ", searchText.prefix(3).lowercased())
+                    return
+                }
+                
+                // key pString: 'Montreal, Qc, Canada'
                 let pString = locality + ", " + area + ", " + country
                 self.placeMarkDict.updateValue(pMark, forKey: pString)
-             
-                
+                self.tableView.reloadData()
             }
         }
-        tableView.reloadData()
     }
+
     
+//CLASS END
 }
 
 extension SearchVC: UITableViewDelegate, UITableViewDataSource{

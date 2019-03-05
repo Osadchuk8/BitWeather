@@ -15,7 +15,8 @@ class LocationService:NSObject {
     fileprivate let geoCoder:CLGeocoder
     public var currentLocation:CLLocation?
     public var currentCity:String=""
-    fileprivate var delayedCompletion: (String)->()
+    public var isLocationServicesEnabled = false
+    fileprivate var completionLocation: (String)->()
     
     
     override init() {
@@ -26,22 +27,28 @@ class LocationService:NSObject {
         geoCoder = CLGeocoder()
         currentLocation=nil
         
-        delayedCompletion = {str in
+        completionLocation = {str in
         }
+       
         
         super.init()
-        checkAuth()
         locMgr.delegate=self
 
         
     }
     
-    public func getCurrentLocation(completion: @escaping (String)->() ){
-//        print("--getCurrentLocation()")
-        locMgr.startUpdatingLocation()
-        delayedCompletion=completion
+    public func getCurrentLocation(completionOk: @escaping (String)->(), completionError: @escaping (String)->() ){
+        if checkAuth() {
+            locMgr.startUpdatingLocation()
+            completionLocation=completionOk //passing fo locmgr delegatemethod use
+        }else{
+            //location not available
+            completionError("Location service not available")
+        }
+        
     }
     
+    //TODO: ambigous with next method
     public func getCityName(location: CLLocation, completion: @escaping (String)->() ){
         
         geoCoder.reverseGeocodeLocation(location, completionHandler: {placemarks, error in
@@ -79,14 +86,20 @@ class LocationService:NSObject {
         })
     }
     
-    private func checkAuth(){
-        
-        if CLLocationManager.authorizationStatus() == .authorizedWhenInUse || CLLocationManager.authorizationStatus() == .authorizedAlways {
-            return
+    private func checkAuth() -> Bool{
+        if CLLocationManager.locationServicesEnabled(){
+            if CLLocationManager.authorizationStatus() == .authorizedWhenInUse || CLLocationManager.authorizationStatus() == .authorizedAlways {
+                isLocationServicesEnabled = true
+                return true
+            }else{
+                locMgr.requestWhenInUseAuthorization()
+                //check if autorisation was granted: didChangeAuthorization() delegate m.
+                return false
+            }
         }else{
-            locMgr.requestWhenInUseAuthorization()
+            isLocationServicesEnabled=false
+            return false
         }
-        
     }
     
 }
@@ -96,7 +109,7 @@ extension LocationService: CLLocationManagerDelegate {
 //        print("--didUpdateLocations() -> ok")
         if let loc = locMgr.location{
             currentLocation = loc
-            getCurrentCityName(completion: delayedCompletion)
+            getCurrentCityName(completion: completionLocation)
             locMgr.stopUpdatingLocation()
         }
         
@@ -104,6 +117,14 @@ extension LocationService: CLLocationManagerDelegate {
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         print("**didUpdateLocations()->didFailWithError()")
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+        if status == .authorizedAlways || status == .authorizedWhenInUse {
+            self.isLocationServicesEnabled = true
+        }else{
+            self.isLocationServicesEnabled = false
+        }
     }
 }
 

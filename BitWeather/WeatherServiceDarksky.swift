@@ -43,7 +43,7 @@ class WeatherServiceDarksky {
             //print("url:  \(requestUrl.debugDescription)")
             let task = session.dataTask(with: requestUrl){
                 (data, response, error) -> () in
-                if let err = error {
+                if let _ = error {
                     completionError()
                     //debugPrint("error: \(err.localizedDescription)")
                 }else{
@@ -306,87 +306,87 @@ class WeatherServiceDarksky {
     //CLASS END
 }
 
-public struct DarkSkyTypes {
-    
-    public enum DSIcons: String {
-        //DS Api response string format has "-" separator -> needs to be replaced with matching "_" symbol
-        case clear_day, clear_night, rain, snow, sleet, hail, wind, fog, cloudy, partly_cloudy_day, partly_cloudy_night
-    }
-    
-    public enum Condition: String {
-        //evaluated condition
-        //sleet: snow+rain
-        case clear, partly_cloudy, cloudy, fog, wind, light_rain, light_snow, rain, snow, sleet, hail, freezing_rain
-    }
-    
-    public enum DSPrecipType: String {
-        case rain, snow, sleet, freezing_rain
-    }
-    
-    public struct DarkSkyDecodedForecast{
-        public var currentlyPoint: Currently?
-        public var dailyBlock: [Daily]?
-        public var hourlyBlock: [Hourly]?
-        public var summaryNextHours: String?
-    }
-    
-    public struct Currently{
-        // ["currently"] -> [String:Any]
-        //currently block doesn't have precipAccumulation field
-        public var time = 0.0
-        public var summary = ""
-        public var icon:DSIcons? = .partly_cloudy_day
-        public var precipIntensity = 0.0
-        public var precipProbability = 0.0
-        public var precipType: DSPrecipType?
-        public var temperature = 0.0
-        public var apparentTemperature = 0.0
-        public var humidity = 0.0
-        public var pressure = 0.0
-        public var windSpeed = 0.0
-        public var windGust = 0.0
-        public var windBearing = 0.0
-        public var visibility = 0.0
-        public var cloudCover = 0.0
-    }
-    
-    
-    public struct Daily{
-        // ["daily"] -> [[String:Any]]
-        public var time = 0.0
-        public var summary = ""
-        public var icon:DSIcons? = .partly_cloudy_day
-        public var temperatureHigh = 0.0
-        public var temperatureLow = 0.0
-        public var precipProbability = 0.0
-        public var precipIntensityMax = 0.0
-        public var precipAccumulation = 0.0
-        public var precipType : DSPrecipType?
-        public var sunrise = 0.0
-        public var sunset = 0.0
-        public var windSpeed = 0.0
-        public var windGust = 0.0
-        public var windBearing = 0.0
-        public var cloudCover = 0.0
-    }
-    
-    public struct Hourly{
-        // ["hourly"] -> [[]String:Any]
-        public var time = 0.0
-        public var summary = ""
-        public var icon:DSIcons? = .partly_cloudy_day
-        public var precipIntensity = 0.0
-        public var precipProbability = 0.0
-        public var precipAccumulation = 0.0  //  snow accumulation: unit per hour
-        public var precipType : DSPrecipType?
-        public var temperature = 0.0
-        public var apparentTemperature = 0.0
-        public var windSpeed = 0.0
-        public var windGust = 0.0
-        public var windBearing = 0.0
-        public var cloudCover = 0.0
-    }
-    
+    public struct DarkSkyTypes {
+        
+        public enum DSIcons: String {
+            //DS Api response string format has "-" separator -> needs to be replaced with matching "_" symbol
+            case clear_day, clear_night, rain, snow, sleet, hail, wind, fog, cloudy, partly_cloudy_day, partly_cloudy_night
+        }
+        
+        public enum Condition: String {
+            //evaluated condition
+            //sleet: snow+rain
+            case clear, partly_cloudy, cloudy, fog, wind, light_rain, light_snow, rain, snow, sleet, hail, freezing_rain
+        }
+        
+        public enum DSPrecipType: String {
+            case rain, snow, sleet, freezing_rain
+        }
+        
+        public struct DarkSkyDecodedForecast{
+            public var currentlyPoint: Currently?
+            public var dailyBlock: [Daily]?
+            public var hourlyBlock: [Hourly]?
+            public var summaryNextHours: String?
+        }
+        
+        public struct Currently{
+            // ["currently"] -> [String:Any]
+            //currently block doesn't have precipAccumulation field
+            public var time = 0.0
+            public var summary = ""
+            public var icon:DSIcons? = .partly_cloudy_day
+            public var precipIntensity = 0.0
+            public var precipProbability = 0.0
+            public var precipType: DSPrecipType?
+            public var temperature = 0.0
+            public var apparentTemperature = 0.0
+            public var humidity = 0.0
+            public var pressure = 0.0
+            public var windSpeed = 0.0
+            public var windGust = 0.0
+            public var windBearing = 0.0
+            public var visibility = 0.0
+            public var cloudCover = 0.0
+        }
+        
+        
+        public struct Daily{
+            // ["daily"] -> [[String:Any]]
+            public var time = 0.0
+            public var summary = ""
+            public var icon:DSIcons? = .partly_cloudy_day
+            public var temperatureHigh = 0.0
+            public var temperatureLow = 0.0
+            public var precipProbability = 0.0
+            public var precipIntensityMax = 0.0
+            public var precipAccumulation = 0.0
+            public var precipType : DSPrecipType?
+            public var sunrise = 0.0
+            public var sunset = 0.0
+            public var windSpeed = 0.0
+            public var windGust = 0.0
+            public var windBearing = 0.0
+            public var cloudCover = 0.0
+        }
+        
+        public struct Hourly{
+            // ["hourly"] -> [[]String:Any]
+            public var time = 0.0
+            public var summary = ""
+            public var icon:DSIcons? = .partly_cloudy_day
+            public var precipIntensity = 0.0
+            public var precipProbability = 0.0
+            public var precipAccumulation = 0.0  //  snow accumulation: unit per hour
+            public var precipType : DSPrecipType?
+            public var temperature = 0.0
+            public var apparentTemperature = 0.0
+            public var windSpeed = 0.0
+            public var windGust = 0.0
+            public var windBearing = 0.0
+            public var cloudCover = 0.0
+        }
+        
     
 }
 

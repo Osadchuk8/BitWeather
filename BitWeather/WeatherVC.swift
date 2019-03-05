@@ -174,6 +174,8 @@ class WeatherVC: UIViewController {
         if conViewDetailTop.constant == 0 {
             toggleView24ViewDetails()
         }
+        conPreferencesBtm.constant = -menuPreferences.frame.height
+        
         if AppShared.isCustomLocation {
             btnGpsLocation.isHidden = false
             btnGpsLocation.isEnabled = true
@@ -187,7 +189,6 @@ class WeatherVC: UIViewController {
     @IBAction func onTapSearch(_ sender: Any) {
         let vc = storyboard!.instantiateViewController(withIdentifier: "search_vc") as! SearchVC
         self.present(vc, animated: true, completion: nil)
-        
     }
     
     
@@ -250,7 +251,28 @@ class WeatherVC: UIViewController {
     }
     
   
+    private func completionLocationAvailable(str:String)->(){
+        self.lblCityName.text=str
+        if let loc = self.locService.currentLocation {
+            self.weatherService.requestWeather(units: self.currentUnitSys, location: loc, completionOk: self.updateWeatherDisplay, completionError: self.displayApiError)
+        }
+    }
     
+    private func completionLocationNonAvailable(errorStr:String)->(){
+        GfxHelper.displayAlert(title: "Current Location", msg: "Location services are not available for BitWeather. To get weather conditions, search by city name. If you would like to get current weather at your location automatically, please allow location use in the settings", delegate: self) {
+            
+            print("locationMgr error msg: \(errorStr)")
+            
+            self.activityIndicator.isHidden = true
+            self.activityIndicator.stopAnimating()
+            if self.lblRefreshCover.alpha > 0 {
+                GfxHelper.animateViewFadeOut(view: self.lblRefreshCover, duration: 1.0, completion: nil)
+            }
+            
+            self.onTapSearch(self);
+        }
+       
+    }
     
     
     public func requestLocationWeather() {
@@ -281,16 +303,12 @@ class WeatherVC: UIViewController {
                 }
             }
         }else{
-            locService.getCurrentLocation {
-                str in
-                self.lblCityName.text=str
-                if let loc = self.locService.currentLocation {
-                    self.weatherService.requestWeather(units: self.currentUnitSys, location: loc, completionOk: self.updateWeatherDisplay, completionError: self.displayApiError)
-                }
-            }
+            locService.getCurrentLocation(completionOk: self.completionLocationAvailable(str:), completionError: self.completionLocationNonAvailable(errorStr:))
         }
       
     }
+    
+   
     
 
     private func displayApiError(){
@@ -336,8 +354,8 @@ class WeatherVC: UIViewController {
             let ss = dailyBlock[0].sunset
             
             //detail sunrise, sunset times
-            self.lblSunSet.text = UnitsHelper.dateStrHmma(unixTime: ss)
-            self.lblSunRise.text = UnitsHelper.dateStrHmma(unixTime: sr)
+            self.lblSunSet.text = UnitsHelper.hourMinutesFormattedFrom(unixTime: ss)
+            self.lblSunRise.text = UnitsHelper.hourMinutesFormattedFrom(unixTime: sr)
             
             let now = Date().timeIntervalSince1970
             self.isDark = (now > sr && now < ss) ? false : true
@@ -372,7 +390,7 @@ class WeatherVC: UIViewController {
             for tag in 1...6 {
                 if let fv = self.view.viewWithTag(tag) as? ForecastView {
                     let day = dailyBlock[tag] //( from next day in dataobject ["days"] index==1)
-                    let dayName = UnitsHelper.dateStrEMMMdd(timeInterval: day.time)
+                    let dayName = UnitsHelper.dateStrEMMMddFrom(unixTime: day.time)
                     fv.lblWeekDayName.text = "\(dayName)"
                     
                     let wind = "\( UnitsHelper.convDegreesToCardinal(degrees: day.windBearing) ) " +
@@ -398,9 +416,9 @@ class WeatherVC: UIViewController {
         // local hour for the specific location
         let hr:Int?
         if AppShared.isCustomLocation, let zone = AppShared.timeZone {
-            hr = UnitsHelper.dateIntHrTimeZone(unixTime: hourlyBlock[0].time, zone: zone)
+            hr = UnitsHelper.hourNonLocalFrom(unixTime: hourlyBlock[0].time, zone: zone)
         }else{
-            hr = UnitsHelper.dateIntH(unixTime: hourlyBlock[0].time)
+            hr = UnitsHelper.hourFrom(unixTime: hourlyBlock[0].time)
         }
                 
         guard let currentHour =  hr else { return }
@@ -492,7 +510,7 @@ class WeatherVC: UIViewController {
                 if snowSet.contains(condition) || rainSet.contains(condition){
                     
                     var value =  mIntensity; if condition == .snow  || condition == .light_snow { value = accumulation }
-                    let maxValue = (AppShared.unitSystem == .us) ? 8.0 : 20.0
+                    let maxValue = (currentUnitSys == .us) ? 8.0 : 20.0
                     let level = (value + 1 < maxValue) ? (value / maxValue + 0.1) : 1
                     
                     let view = dqv.vPartLevel
