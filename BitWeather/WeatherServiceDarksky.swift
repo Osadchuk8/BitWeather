@@ -298,7 +298,7 @@ class WeatherServiceDarksky {
         let unitStr = unit ?? ""
         let intVal = Int(value)
         //let valStr = String(format: "%.0f", val)
-        let  s=( intVal<=0 ? "\(intVal) \(unitStr)" : "+\(intVal) \(unitStr)")
+        let  s=( intVal<0 ? "\(intVal) \(unitStr)" : "+\(intVal) \(unitStr)")
         return s
     }
 

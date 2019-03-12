@@ -11,8 +11,10 @@ import CoreLocation
 
 struct AppShared {
     
-    static var isCustomLocation = false
+    static var isGpsLocation:Bool?
+    //static var isCustomLocation = false
     static var needsRefresh = false
+    static var needsGpsLocationWeather=false
     static var location:CLLocation?
     static var unitSystem:UnitsHelper.UnitSystems?
     static var timeZone:TimeZone?

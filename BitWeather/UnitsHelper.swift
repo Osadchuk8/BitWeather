@@ -127,7 +127,8 @@ class UnitsHelper {
         //Calendar approach:
         //let hour = Calendar.current.component(.hour, from: Date())
         //*
-        //using Date:
+        
+        // Date approach:
         let date = Date(timeIntervalSince1970: unixTime)
         let formatter = DateFormatter()
         formatter.dateFormat = "H"
@@ -139,7 +140,7 @@ class UnitsHelper {
         }
     }
     
-    // time for specific non-local TZ?
+    // time for specific non-local timeZone
     
     class func hourNonLocalFrom(unixTime: Double, zone: TimeZone) -> Int?{
         let date = Date(timeIntervalSince1970: unixTime)
@@ -154,10 +155,18 @@ class UnitsHelper {
         }
     }
     
-    // time as 5:30am
+    // time as 5:30am (12am format) || 17:30 (24h format)
     class func hourMinutesFormattedFrom(unixTime: Double) -> String {
         let date = Date(timeIntervalSince1970: unixTime)
         let formatter = DateFormatter()
+        formatter.dateFormat = "h:mma"
+        return formatter.string(from: date)
+    }
+    
+    class func hourMinutesNonLocalFormattedFrom(unixTime: Double, zone: TimeZone) -> String {
+        let date = Date(timeIntervalSince1970: unixTime)
+        let formatter = DateFormatter()
+        formatter.timeZone = zone
         formatter.dateFormat = "h:mma"
         return formatter.string(from: date)
     }

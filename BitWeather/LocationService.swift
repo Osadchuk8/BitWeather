@@ -15,38 +15,61 @@ class LocationService:NSObject {
     fileprivate let geoCoder:CLGeocoder
     public var currentLocation:CLLocation?
     public var currentCity:String=""
-    public var isLocationServicesEnabled = false
+//    public var isLocationServicesEnabled = false
     fileprivate var completionLocation: (String)->()
-    
+    fileprivate var completionAuthGranted: ()->()
+    fileprivate var completionAuthDenied: ()->()
+    fileprivate var locationStatusInitial:CLAuthorizationStatus
     
     override init() {
         
         locMgr = CLLocationManager()
         locMgr.desiredAccuracy = kCLLocationAccuracyKilometer
-
         geoCoder = CLGeocoder()
         currentLocation=nil
-        
+    
         completionLocation = {str in
         }
-       
+        completionAuthGranted = {}
+        completionAuthDenied = {}
+       locationStatusInitial = CLLocationManager.authorizationStatus()
         
         super.init()
         locMgr.delegate=self
+        
+//        print("init:, CLLocationManager.authorizationStatus()", CLLocationManager.authorizationStatus().rawValue)
 
         
     }
     
-    public func getCurrentLocation(completionOk: @escaping (String)->(), completionError: @escaping (String)->() ){
-        if checkAuth() {
+    public func getCurrentLocation(completion: @escaping (String)->() ){
             locMgr.startUpdatingLocation()
-            completionLocation=completionOk //passing fo locmgr delegatemethod use
-        }else{
-            //location not available
-            completionError("Location service not available")
-        }
-        
+            completionLocation=completion //passing fo locmgr delegate method use
     }
+    
+    
+    public func checkLocationStatus(completionGranted: @escaping ()->(), completionDenied: @escaping ()->()){
+        
+        //TODO: check if .locationServicesEnabled affected by requestWhenInUseAuthorization()
+       
+        if CLLocationManager.locationServicesEnabled(){
+            if CLLocationManager.authorizationStatus() == .authorizedWhenInUse || CLLocationManager.authorizationStatus() == .authorizedAlways {
+//                isLocationServicesEnabled = true
+                completionGranted()
+            }else if CLLocationManager.authorizationStatus() == .denied || CLLocationManager.authorizationStatus() == .restricted {
+//                isLocationServicesEnabled=false
+                completionDenied()
+            }else{
+                locMgr.requestWhenInUseAuthorization()
+                completionAuthGranted = completionGranted
+                completionAuthDenied = completionDenied
+            }
+        }else{
+//            isLocationServicesEnabled=false
+            completionDenied()
+        }
+    }
+    
     
     //TODO: ambigous with next method
     public func getCityName(location: CLLocation, completion: @escaping (String)->() ){
@@ -54,13 +77,12 @@ class LocationService:NSObject {
         geoCoder.reverseGeocodeLocation(location, completionHandler: {placemarks, error in
             
             if let e=error {
-                print("--reverseGeocodeLocation() -> error: \(e.localizedDescription)")
+//                print("--reverseGeocodeLocation() -> error: \(e.localizedDescription)")
                 return
             }
             guard let addressDict = placemarks?[0].addressDictionary else {return}
             if let city = addressDict["City"] as? String {
                 self.currentCity=city
-//                print ("--currentCity=", self.currentCity)
             }
             completion(self.currentCity)
         })
@@ -72,7 +94,7 @@ class LocationService:NSObject {
         }
         geoCoder.reverseGeocodeLocation(loc, completionHandler: {placemarks, error in
             if let e=error {
-                print("--reverseGeocodeLocation() -> error: \(e.localizedDescription)")
+//                print("--reverseGeocodeLocation() -> error: \(e.localizedDescription)")
                 return
             }
             guard let addressDict = placemarks?[0].addressDictionary else {return}
@@ -86,22 +108,9 @@ class LocationService:NSObject {
         })
     }
     
-    private func checkAuth() -> Bool{
-        if CLLocationManager.locationServicesEnabled(){
-            if CLLocationManager.authorizationStatus() == .authorizedWhenInUse || CLLocationManager.authorizationStatus() == .authorizedAlways {
-                isLocationServicesEnabled = true
-                return true
-            }else{
-                locMgr.requestWhenInUseAuthorization()
-                //check if autorisation was granted: didChangeAuthorization() delegate m.
-                return false
-            }
-        }else{
-            isLocationServicesEnabled=false
-            return false
-        }
-    }
+   
     
+    //CLASS END
 }
 
 extension LocationService: CLLocationManagerDelegate {
@@ -115,16 +124,26 @@ extension LocationService: CLLocationManagerDelegate {
         
     }
     
+    
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        print("**didUpdateLocations()->didFailWithError()")
+//        print("**locationManager()->didFailWithError(): \(error.localizedDescription)")
     }
     
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+        
+        //print("didChangeAuthorization, locationStatusInit:", locationStatusInitial.rawValue)
+        
+        if status == locationStatusInitial { return }
         if status == .authorizedAlways || status == .authorizedWhenInUse {
-            self.isLocationServicesEnabled = true
+            self.completionAuthGranted()
+//            print("didChangeAuthorization(), completionGranted()")
+//            self.isLocationServicesEnabled = true
         }else{
-            self.isLocationServicesEnabled = false
+            self.completionAuthDenied()
+//            print("didChangeAuthorization(), completionDenied()")
+//            self.isLocationServicesEnabled = false
         }
+        locationStatusInitial = status
     }
 }
 

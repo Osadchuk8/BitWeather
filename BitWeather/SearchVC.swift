@@ -33,6 +33,7 @@ class SearchVC: UIViewController, UISearchBarDelegate {
         searchBar.delegate = self
         tableView.delegate = self
         tableView.dataSource = self
+        searchBar.becomeFirstResponder()
     }
     
     
@@ -44,6 +45,9 @@ class SearchVC: UIViewController, UISearchBarDelegate {
         searchBar.backgroundColor = nil
        // searchBar.searchBarStyle = .minimal
         searchBar.showsScopeBar = false
+        
+        searchBar.returnKeyType = .done
+        
         
         //TODO #IF_IOS9*  ??
         let scopeBarContainer: UIView? = searchBar.subviews.first?.subviews.first
@@ -91,7 +95,7 @@ class SearchVC: UIViewController, UISearchBarDelegate {
             if geoCoder.isGeocoding {
                 geoCoder.cancelGeocode()
             }
-            print("\n .. searchBarText to geocode: ", searchText)
+//            print("\n .. searchBarText to geocode: ", searchText)
            
             geoCoder.geocodeAddressString(searchText) {placemarks, error in
                 guard let placemarks = placemarks, error == nil, placemarks.count>0
@@ -100,14 +104,14 @@ class SearchVC: UIViewController, UISearchBarDelegate {
                         return
                 }
                 let pMark = placemarks[0]
-                print("pMark:  \(pMark)")
+//                print("pMark:  \(pMark)")
                 guard let locality = pMark.locality, let area = pMark.administrativeArea, let country = pMark.country, locality.count > 2 else {
                     return
                 }
                 
                 if locality.prefix(3).lowercased() != searchText.prefix(3).lowercased()
                     && area.prefix(3).lowercased() != searchText.prefix(3).lowercased(){
-                    print(locality.prefix(3).lowercased(), " :(!=): ", searchText.prefix(3).lowercased())
+//                    print(locality.prefix(3).lowercased(), " :(!=): ", searchText.prefix(3).lowercased())
                     return
                 }
                 
@@ -118,6 +122,7 @@ class SearchVC: UIViewController, UISearchBarDelegate {
             }
         }
     }
+    
 
     
 //CLASS END
@@ -144,20 +149,16 @@ extension SearchVC: UITableViewDelegate, UITableViewDataSource{
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-//        let weatherVC = storyboard?.instantiateViewController(withIdentifier: "weather_vc") as! WeatherVC
-//        weatherVC.isCustomLocation = true
-        
-        //get location from choosen placemark
         
         let placeMark = Array(placeMarkDict.values)[placeMarkDict.count - 1 - indexPath.row]
         
         if let location = placeMark.location as CLLocation?{
             AppShared.location = location
-            AppShared.isCustomLocation = true
+            AppShared.isGpsLocation = false
+            AppShared.needsGpsLocationWeather = false
             AppShared.needsRefresh = true
             
         }else{
-            AppShared.isCustomLocation = false
         }
         
         if let zone = placeMark.timeZone as TimeZone? {

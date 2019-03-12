@@ -32,7 +32,7 @@ class WeatherVC: UIViewController {
     //view Details - expandable
     @IBOutlet weak var viewDetail:  UIView!
     @IBOutlet weak var conViewDetailTop: NSLayoutConstraint!
-   
+    
     @IBOutlet weak var lblSummaryHourly: UILabel!
     @IBOutlet weak var lblHumidity: UILabel!
     @IBOutlet weak var lblVisibility: UILabel!
@@ -51,8 +51,8 @@ class WeatherVC: UIViewController {
     
     
     weak var timer:Timer?
-   
-    var locService = LocationService()
+    
+    var locService = LocationService();
     var weatherService = WeatherServiceDarksky()
     var timeStampLastRefresh:TimeInterval? //= Date().timeIntervalSince1970
     var currentUnitStrings:UnitsHelper.UnitsStrings?
@@ -62,7 +62,7 @@ class WeatherVC: UIViewController {
     
     // request counter
     var counter = 0
-
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -71,8 +71,12 @@ class WeatherVC: UIViewController {
         
         setUnitStrings()
         AppShared.needsRefresh = true
+        AppShared.isGpsLocation = false
+        AppShared.needsGpsLocationWeather = true
+        //AppShared.isCustomLocation = false
         GfxHelper.setBlurBackground(view: menuPreferences)
         startRequestTimer()
+        AppShared.needsGpsLocationWeather = true
     }
     
     
@@ -110,7 +114,7 @@ class WeatherVC: UIViewController {
         conViewDetailTop.constant = -viewDetail.frame.height
         activityIndicator.isHidden = true
         if AppShared.needsRefresh {
-          requestLocationWeather()
+            requestLocationWeather()
         }
         conPreferencesBtm.constant = -menuPreferences.frame.height
         segmControlUnitChoice.backgroundColor = .white
@@ -118,12 +122,13 @@ class WeatherVC: UIViewController {
         segmControlUnitChoice.clipsToBounds = true
         
         switch AppShared.unitSystem {
-            case .ca? : segmControlUnitChoice.selectedSegmentIndex = 2
-            case .us? : segmControlUnitChoice.selectedSegmentIndex = 1
-            default: segmControlUnitChoice.selectedSegmentIndex = 0
+        case .ca? : segmControlUnitChoice.selectedSegmentIndex = 2
+        case .us? : segmControlUnitChoice.selectedSegmentIndex = 1
+        default: segmControlUnitChoice.selectedSegmentIndex = 0
         }
         
-        if AppShared.isCustomLocation {
+        
+        if let isGps = AppShared.isGpsLocation, isGps==false   {
             btnGpsLocation.isHidden = false
             btnGpsLocation.isEnabled = true
         }else{
@@ -138,9 +143,9 @@ class WeatherVC: UIViewController {
         
     }
     
-//    override func viewDidDisappear(_ animated: Bool) {
-//        super.viewDidDisappear(true)
-//    }
+    //    override func viewDidDisappear(_ animated: Bool) {
+    //        super.viewDidDisappear(true)
+    //    }
     
     
     func startRequestTimer(){
@@ -156,7 +161,7 @@ class WeatherVC: UIViewController {
         }else{
             requestLocationWeather()
         }
-      
+        
         
     }
     
@@ -176,7 +181,7 @@ class WeatherVC: UIViewController {
         }
         conPreferencesBtm.constant = -menuPreferences.frame.height
         
-        if AppShared.isCustomLocation {
+        if let isGps = AppShared.isGpsLocation, isGps == false {
             btnGpsLocation.isHidden = false
             btnGpsLocation.isEnabled = true
         }else{
@@ -207,7 +212,7 @@ class WeatherVC: UIViewController {
             //deatil view non visible: showing it
             conViewDetailTop.constant = 0
             btnExpandMiddleView.setImage(#imageLiteral(resourceName: "b_arrow_up"), for: .normal)
-
+            
         }
     }
     
@@ -225,14 +230,8 @@ class WeatherVC: UIViewController {
     
     
     @IBAction func onTapGpsLocation(_ sender: Any) {
-        if AppShared.isCustomLocation == true {
-            AppShared.isCustomLocation = false
-            AppShared.location = nil
-            requestLocationWeather()
-            btnGpsLocation.isEnabled = false
-            btnGpsLocation.isHidden = true
-        }
-        
+        AppShared.needsGpsLocationWeather = true
+        requestLocationWeather()
     }
     
     
@@ -250,39 +249,48 @@ class WeatherVC: UIViewController {
         }
     }
     
-  
-    private func completionLocationAvailable(str:String)->(){
-        self.lblCityName.text=str
-        if let loc = self.locService.currentLocation {
-            self.weatherService.requestWeather(units: self.currentUnitSys, location: loc, completionOk: self.updateWeatherDisplay, completionError: self.displayApiError)
+    
+    private func stopActivityIndicator(){
+        DispatchQueue.main.async {
+            self.activityIndicator.isHidden = true
+            self.activityIndicator.stopAnimating()
         }
     }
     
-    private func completionLocationNonAvailable(errorStr:String)->(){
-        GfxHelper.displayAlert(title: "Current Location", msg: "Location services are not available for BitWeather. To get weather conditions, search by city name. If you would like to get current weather at your location automatically, please allow location use in the settings", delegate: self) {
-            
-            print("locationMgr error msg: \(errorStr)")
-            
-            self.activityIndicator.isHidden = true
-            self.activityIndicator.stopAnimating()
+    private func completionLocationAvailable()->(){
+        
+        self.locService.getCurrentLocation{string in
+            self.lblCityName.text=string
+            if let loc = self.locService.currentLocation {
+                
+                AppShared.isGpsLocation = true
+                self.btnGpsLocation.isEnabled = false
+                self.btnGpsLocation.isHidden = true
+                
+                self.weatherService.requestWeather(units: self.currentUnitSys, location: loc, completionOk: self.updateWeatherDisplay, completionError: self.displayApiError)
+            }
+        }
+        
+    }
+    
+    private func completionLocationNonAvailable()->(){
+        GfxHelper.displayAlert(title: "Current Location", msg: "Location Services seem to be turned off. Enable Location use to get local weather, or just use search by city name.", delegate: self) {
+//            print("locationMgr error, location services n/a)")
+            self.onTapSearch(self);
+            self.stopActivityIndicator()
             if self.lblRefreshCover.alpha > 0 {
                 GfxHelper.animateViewFadeOut(view: self.lblRefreshCover, duration: 1.0, completion: nil)
             }
-            
-            self.onTapSearch(self);
         }
-       
     }
     
     
     public func requestLocationWeather() {
         
-        if ConnectivityHelper.isConnectedToNetwork(){
-            //ok
-        } else {
+//        print("requestLocationWeather()")
+        if !ConnectivityHelper.isConnectedToNetwork(){
             // network not reachable, alert
             GfxHelper.displayAlert(title: "", msg: "Looks like there is no connection to the internet, please check the settings.", delegate: self, completion: nil)
-            
             // gonna need request later
             AppShared.needsRefresh = true
             return
@@ -290,29 +298,38 @@ class WeatherVC: UIViewController {
         
         activityIndicator.isHidden = false
         activityIndicator.startAnimating()
-       
-        //get location and city:
+        
         timeStampLastRefresh = Date().timeIntervalSince1970 //request timestamp
-        if AppShared.isCustomLocation {
-            
+       
+        if AppShared.needsGpsLocationWeather {
+            //need use location services, check available, get location
+            locService.checkLocationStatus(
+                completionGranted:self.completionLocationAvailable,
+                completionDenied:self.completionLocationNonAvailable)
+           
+        }else{
             if let loc = AppShared.location {
                 locService.getCityName(location: loc){
                     str in
                     self.lblCityName.text=str
                     self.weatherService.requestWeather(units: self.currentUnitSys, location: loc, completionOk: self.updateWeatherDisplay, completionError: self.displayApiError)
                 }
+                AppShared.isGpsLocation = false
             }
-        }else{
-            locService.getCurrentLocation(completionOk: self.completionLocationAvailable(str:), completionError: self.completionLocationNonAvailable(errorStr:))
+           
         }
-      
+        
     }
     
-   
     
-
+    
+    
     private func displayApiError(){
-        GfxHelper.displayAlert(title: "", msg: "Probably the forecast server returned an error. Please try again later.", delegate: self, completion: nil)
+        if self.lblRefreshCover.alpha > 0 {
+            GfxHelper.animateViewFadeOut(view: self.lblRefreshCover, duration: 1.0, completion: nil)
+        }
+        self.stopActivityIndicator()
+        GfxHelper.displayAlert(title: "", msg: "Unable to get current weather. Please try again later.", delegate: self, completion: nil)
     }
     
     private func displayCurrentlySection(currently: DarkSkyTypes.Currently){
@@ -331,12 +348,12 @@ class WeatherVC: UIViewController {
         //set current condition
         self.condition = condition
         
-//        print("---CURRENTLY \n API_icon: \(currently.icon), prob: \(currently.precipProbability), intensity: \(currently.precipIntensity), acc: \(accumulation) \n evaluated: \(condition)")
+        //        print("---CURRENTLY \n API_icon: \(currently.icon), prob: \(currently.precipProbability), intensity: \(currently.precipIntensity), acc: \(accumulation) \n evaluated: \(condition)")
         
         let windStr = "\( UnitsHelper.convDegreesToCardinal(degrees: currently.windBearing) ) " +
             String(format: "%.0f", currently.windSpeed) + self.currentUnitStrings!.speedStr
         self.displayEvaluatedCondition(isDark: self.isDark, condition: condition, probValue: currently.precipProbability, rainValue: currently.precipIntensity, snowValue: accumulation, windString: windStr, targetIconView: self.ivCurrentIcon, targetPrecipitationLabel: self.lblCurrentConditionDetail)
-        self.lblCurrentConditionDetail.text = "feels like " + String(format: "%.0f", currently.apparentTemperature)
+        self.lblCurrentConditionDetail.text = "feels like " + WeatherServiceDarksky.formatTemperatureString(value: currently.apparentTemperature, unit: "") //    String(format: "%.0f", currently.apparentTemperature)
         
         //details area
         
@@ -346,7 +363,7 @@ class WeatherVC: UIViewController {
         self.lblWind.text = windStr
     }
     
-     func updateBackgroundDetectDark(dailyBlock: [DarkSkyTypes.Daily]){
+    func updateBackgroundDetectDark(dailyBlock: [DarkSkyTypes.Daily]){
         //detect dark
         if dailyBlock.count>0 {
             //unix time for sunrise/sunset
@@ -354,8 +371,16 @@ class WeatherVC: UIViewController {
             let ss = dailyBlock[0].sunset
             
             //detail sunrise, sunset times
-            self.lblSunSet.text = UnitsHelper.hourMinutesFormattedFrom(unixTime: ss)
-            self.lblSunRise.text = UnitsHelper.hourMinutesFormattedFrom(unixTime: sr)
+            
+            // hour at the specific timezone
+            
+            if let isGps = AppShared.isGpsLocation, isGps==false, let zone = AppShared.timeZone {
+                self.lblSunSet.text = UnitsHelper.hourMinutesNonLocalFormattedFrom(unixTime: ss, zone: zone)
+                self.lblSunRise.text = UnitsHelper.hourMinutesNonLocalFormattedFrom(unixTime: sr, zone: zone)
+            }else{
+                self.lblSunSet.text = UnitsHelper.hourMinutesFormattedFrom(unixTime: ss)
+                self.lblSunRise.text = UnitsHelper.hourMinutesFormattedFrom(unixTime: sr)
+            }
             
             let now = Date().timeIntervalSince1970
             self.isDark = (now > sr && now < ss) ? false : true
@@ -380,8 +405,8 @@ class WeatherVC: UIViewController {
             tmpLow = dailyBlock[0].temperatureHigh
             tmpHigh = dailyBlock[0].temperatureLow
         }
-        self.lblCurrentTempLow.text = WeatherServiceDarksky.formatTemperatureString(value: tmpLow, unit: "")
-        self.lblCurrentTempHigh.text = WeatherServiceDarksky.formatTemperatureString(value: tmpHigh, unit: "")
+        self.lblCurrentTempLow.text = "⬇︎ " + WeatherServiceDarksky.formatTemperatureString(value: tmpLow, unit: "")
+        self.lblCurrentTempHigh.text = "⬆︎ " + WeatherServiceDarksky.formatTemperatureString(value: tmpHigh, unit: "")
     }
     
     func display6daySection(dailyBlock: [DarkSkyTypes.Daily]){
@@ -407,20 +432,20 @@ class WeatherVC: UIViewController {
     }
     
     func display24hSection(hourlyBlock: [DarkSkyTypes.Hourly], summary: String?){
-    
+        
         self.lblSummaryHourly.text = summary ?? ""
         // next day parts = current (6hrs) + 24 -> min 30 entries
         if hourlyBlock.count < 31 { return }
         //partitioning:
         
-        // local hour for the specific location
+        // hour at the specific timezone
         let hr:Int?
-        if AppShared.isCustomLocation, let zone = AppShared.timeZone {
+        if let isGps = AppShared.isGpsLocation, isGps==false, let zone = AppShared.timeZone {
             hr = UnitsHelper.hourNonLocalFrom(unixTime: hourlyBlock[0].time, zone: zone)
         }else{
             hr = UnitsHelper.hourFrom(unixTime: hourlyBlock[0].time)
         }
-                
+        
         guard let currentHour =  hr else { return }
         var startIndex:Int
         var endIndex:Int
@@ -444,7 +469,7 @@ class WeatherVC: UIViewController {
             endIndex = startIndex + 5
             firstPartIndex = (currentHour/6 + 1) % 4
         }
-      
+        
         for tag in 11...14 {
             if let dqv = self.view.viewWithTag(tag) as? DayQuaterView {
                 
@@ -488,7 +513,7 @@ class WeatherVC: UIViewController {
                 mSpeed /= count
                 mBearing /= count
                 
-
+                
                 dqv.lblDayQuaterTitle.text = partTitleArr[iPart]       //partTitleArr[tag-11]
                 self.isDark = darkArr[iPart]              //darkArr[tag-11]
                 dqv.lblPartTemp.text = WeatherServiceDarksky.formatTemperatureString(value: mTemp, unit: "")
@@ -499,7 +524,7 @@ class WeatherVC: UIViewController {
                 
                 let condition = self.weatherService.evaluateCondition(probability: mProbability, temp: mTemp, intensity: mIntensity, accumulation: accumulation, cover: mCover, apiIcon: hourlyBlock[iFirst].icon, unitSystem: currentUnitSys)
                 
-//                print("---24HOUR API_icon: \(hourlyBlock[iFirst].icon), prob: \(mProbability), intensity: \(mIntensity), acc: \(accumulation) evaluated: \(condition) \n")
+                //                print("---24HOUR API_icon: \(hourlyBlock[iFirst].icon), prob: \(mProbability), intensity: \(mIntensity), acc: \(accumulation) evaluated: \(condition) \n")
                 
                 
                 self.displayEvaluatedCondition(isDark:self.isDark, condition:condition, probValue: mProbability, rainValue:mIntensity, snowValue: accumulation, windString: wind, targetIconView: dqv.ivPartIcon, targetPrecipitationLabel: dqv.lblPartDescr)
@@ -529,14 +554,12 @@ class WeatherVC: UIViewController {
     
     private func updateWeatherDisplay(forecast: DarkSkyTypes.DarkSkyDecodedForecast) {
         
+        self.stopActivityIndicator()
         DispatchQueue.main.async {
-            self.activityIndicator.isHidden = true
-            self.activityIndicator.stopAnimating()
             
             if self.lblRefreshCover.alpha > 0 {
                 GfxHelper.animateViewFadeOut(view: self.lblRefreshCover, duration: 1.0, completion: nil)
             }
-            
             // CURRENTLY
             guard let currently = forecast.currentlyPoint else {return}
             self.displayCurrentlySection(currently: currently)
@@ -561,11 +584,11 @@ class WeatherVC: UIViewController {
             targetIconView?.image = GfxHelper.scaledImage(image: UIImage(named: "\(condition.rawValue)"), newFrame: targetIconView?.frame)
         }
     }
-
+    
     private func displayEvaluatedCondition(isDark:Bool, condition: DarkSkyTypes.Condition,probValue:Double, rainValue:Double, snowValue:Double, windString:String, targetIconView: UIImageView?, targetPrecipitationLabel:UILabel?){
         
         displayEvaluatedIcon(isDark: isDark, condition: condition, targetIconView: targetIconView)
-       
+        
         switch condition{
         case DarkSkyTypes.Condition.clear, .partly_cloudy, .cloudy, .wind:
             targetPrecipitationLabel?.text = "\( String(format: "%0.f",  probValue*100) )%"
@@ -578,8 +601,8 @@ class WeatherVC: UIViewController {
             targetPrecipitationLabel?.text = "\(WeatherServiceDarksky.formatPrecipString(uStrings: self.currentUnitStrings!, condition: condition, value: snowValue) )"
         }
     }
-
-//CLASS END
+    
+    //CLASS END
 }
 
 
@@ -595,15 +618,15 @@ class ForecastView: UIView {
     @IBOutlet weak var lblTempHigh: UILabel!
     @IBOutlet weak var lblTempLow: UILabel!
     @IBOutlet weak var ivIcon: UIImageView!
-   // @IBOutlet weak var vPrecipLevel: UIView!
+    // @IBOutlet weak var vPrecipLevel: UIView!
     
     
     
-//    override func draw(_ rect: CGRect) {
-//        self.layer.borderWidth = 1
-//        self.layer.borderColor = #colorLiteral(red: 0.921431005, green: 0.9214526415, blue: 0.9214410186, alpha: 0.5)
-//
-//    }
+    //    override func draw(_ rect: CGRect) {
+    //        self.layer.borderWidth = 1
+    //        self.layer.borderColor = #colorLiteral(red: 0.921431005, green: 0.9214526415, blue: 0.9214410186, alpha: 0.5)
+    //
+    //    }
     
 }
 
