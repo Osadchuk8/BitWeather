@@ -171,7 +171,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "BitWeather/LocationService.swift"
-            timestampString = "574044112.062459"
+            timestampString = "574226269.264635"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "52"
@@ -187,7 +187,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "BitWeather/LocationService.swift"
-            timestampString = "574044112.062588"
+            timestampString = "574226269.264753"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "137"
@@ -203,13 +203,13 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "BitWeather/WeatherVC.swift"
-            timestampString = "574044112.062736"
+            timestampString = "574226269.264838"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "169"
             endingLineNumber = "169"
-            landmarkName = "vcWillEnterForeground()"
-            landmarkType = "7">
+            landmarkName = "unknown"
+            landmarkType = "0">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -219,13 +219,13 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "BitWeather/WeatherVC.swift"
-            timestampString = "574044112.0628411"
+            timestampString = "574226269.264924"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "111"
             endingLineNumber = "111"
-            landmarkName = "viewDidAppear(_:)"
-            landmarkType = "7">
+            landmarkName = "unknown"
+            landmarkType = "0">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -235,13 +235,13 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "BitWeather/WeatherVC.swift"
-            timestampString = "574044112.062939"
+            timestampString = "574226269.265008"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "288"
             endingLineNumber = "288"
-            landmarkName = "requestLocationWeather()"
-            landmarkType = "7">
+            landmarkName = "unknown"
+            landmarkType = "0">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -251,7 +251,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "BitWeather/AppDelegate.swift"
-            timestampString = "574044112.063027"
+            timestampString = "574226269.265093"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "38"
@@ -267,7 +267,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "BitWeather/AppDelegate.swift"
-            timestampString = "574044112.063107"
+            timestampString = "574226269.2651711"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "42"
@@ -283,7 +283,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "BitWeather/AppDelegate.swift"
-            timestampString = "574044112.063185"
+            timestampString = "574226269.265247"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "18"

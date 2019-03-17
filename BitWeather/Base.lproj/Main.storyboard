@@ -205,7 +205,7 @@
                                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                             </imageView>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="vw6-pr-3dG">
-                                                <rect key="frame" x="141" y="4" width="133.33333333333337" height="50.333333333333336"/>
+                                                <rect key="frame" x="141" y="4" width="133.33333333333337" height="44.333333333333336"/>
                                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                                 <fontDescription key="fontDescription" type="system" pointSize="40"/>
                                                 <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -288,8 +288,8 @@
                                                     <fontDescription key="fontDescription" type="system" pointSize="36"/>
                                                 </variation>
                                             </label>
-                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="L0i-Od-wz2">
-                                                <rect key="frame" x="141" y="58.333333333333336" width="133.33333333333337" height="25.333333333333336"/>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="L0i-Od-wz2">
+                                                <rect key="frame" x="141" y="52.333333333333336" width="133.33333333333337" height="31.333333333333336"/>
                                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                                 <fontDescription key="fontDescription" type="system" pointSize="18"/>
                                                 <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -308,13 +308,13 @@
                                             <constraint firstItem="L0i-Od-wz2" firstAttribute="top" secondItem="vw6-pr-3dG" secondAttribute="bottom" constant="4" id="AX1-8R-Egw"/>
                                             <constraint firstItem="J3n-ZG-BZg" firstAttribute="width" secondItem="vw6-pr-3dG" secondAttribute="width" id="DsV-Kt-KWv"/>
                                             <constraint firstItem="vw6-pr-3dG" firstAttribute="width" secondItem="3br-fF-n6p" secondAttribute="width" id="JIX-NL-fzx"/>
-                                            <constraint firstItem="L0i-Od-wz2" firstAttribute="height" secondItem="vw6-pr-3dG" secondAttribute="height" multiplier="0.5" id="Pmn-CQ-0nr"/>
+                                            <constraint firstItem="L0i-Od-wz2" firstAttribute="height" secondItem="vw6-pr-3dG" secondAttribute="height" multiplier="0.7" id="Pmn-CQ-0nr"/>
                                             <constraint firstItem="vw6-pr-3dG" firstAttribute="leading" secondItem="L0i-Od-wz2" secondAttribute="leading" id="S4I-6G-tLc"/>
                                             <constraint firstItem="3br-fF-n6p" firstAttribute="top" secondItem="3jT-9L-l8h" secondAttribute="top" constant="4" id="S6b-aq-bQS"/>
                                             <constraint firstAttribute="bottom" secondItem="3br-fF-n6p" secondAttribute="bottom" constant="4" id="VvB-0k-koZ"/>
                                             <constraint firstAttribute="bottom" secondItem="J3n-ZG-BZg" secondAttribute="bottom" constant="4" id="fw1-A2-Glh"/>
                                             <constraint firstItem="DHC-gs-sIv" firstAttribute="leading" secondItem="vw6-pr-3dG" secondAttribute="trailing" constant="3.5" id="giH-8g-pWo"/>
-                                            <constraint firstItem="J3n-ZG-BZg" firstAttribute="height" secondItem="L0i-Od-wz2" secondAttribute="height" id="hmz-Qy-iad"/>
+                                            <constraint firstItem="J3n-ZG-BZg" firstAttribute="height" secondItem="L0i-Od-wz2" secondAttribute="height" multiplier="0.8" id="hmz-Qy-iad"/>
                                             <constraint firstItem="L0i-Od-wz2" firstAttribute="width" secondItem="vw6-pr-3dG" secondAttribute="width" id="kDk-zL-fuh"/>
                                             <constraint firstItem="vw6-pr-3dG" firstAttribute="leading" secondItem="3br-fF-n6p" secondAttribute="trailing" constant="4" id="l1g-QM-dm1"/>
                                             <constraint firstAttribute="trailing" secondItem="DHC-gs-sIv" secondAttribute="trailing" constant="4" id="m2R-w5-avu"/>

@@ -274,7 +274,7 @@ class WeatherVC: UIViewController {
     }
     
     private func completionLocationNonAvailable()->(){
-        GfxHelper.displayAlert(title: "Current Location", msg: "Location Services seem to be turned off. Enable Location use to get local weather, or just use search by city name.", delegate: self) {
+        GfxHelper.displayAlert(title: "Current Location", msg: "Location Services seem to be turned off. Enable Location to get local weather, or just use search by city name.", delegate: self) {
 //            print("locationMgr error, location services n/a)")
             self.onTapSearch(self);
             self.stopActivityIndicator()
