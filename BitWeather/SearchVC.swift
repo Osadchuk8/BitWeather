@@ -46,6 +46,7 @@ class SearchVC: UIViewController, UISearchBarDelegate {
        // searchBar.searchBarStyle = .minimal
         searchBar.showsScopeBar = false
         
+        //storyboard (return button) overrides this(ios 11.x)
         searchBar.returnKeyType = .done
         
         
@@ -121,6 +122,12 @@ class SearchVC: UIViewController, UISearchBarDelegate {
                 self.tableView.reloadData()
             }
         }
+    }
+    
+    //search Button title  can be .done and .cancel as well
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.resignFirstResponder()
+        //print("--searchBarSearchButtonClicked")
     }
     
 
