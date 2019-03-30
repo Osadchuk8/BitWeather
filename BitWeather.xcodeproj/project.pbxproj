@@ -97,6 +97,7 @@
 		07A0A66F1FD10C3800ACD614 = {
 			isa = PBXGroup;
 			children = (
+				9636440C224EF10C000754A4 /* Readme.md */,
 				07A0A67A1FD10C3800ACD614 /* BitWeather */,
 				07A0A68F1FD10C3800ACD614 /* BitWeatherTests */,
 				07A0A69A1FD10C3800ACD614 /* BitWeatherUITests */,
@@ -118,7 +119,6 @@
 			isa = PBXGroup;
 			children = (
 				07A0A67B1FD10C3800ACD614 /* AppDelegate.swift */,
-				9636440C224EF10C000754A4 /* Readme.md */,
 				073A3C4421F655FA00DB140D /* SearchVC.swift */,
 				078F9A1B20215CEA0083F83C /* todo.txt */,
 				077057A721953BB90072E769 /* WeatherServiceDarksky.swift */,
