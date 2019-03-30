@@ -31,7 +31,6 @@ public class ConnectivityHelper{
         
         
         //Cellular && WIFI
-        // let isNonZero = ( (someInt) != 0 )?
         let isReachable = (flags.rawValue & UInt32(kSCNetworkFlagsReachable)) != 0
         let needsConnection = (flags.rawValue & UInt32(kSCNetworkFlagsConnectionRequired)) != 0
         let r = (isReachable && !needsConnection)

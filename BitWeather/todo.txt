@@ -1,13 +1,6 @@
 
-1) Admission reject problem:
+###TODO Version 2.0
 
-We noticed that your app requests the user’s consent to access their location but does not clarify the use of the location in the applicable purpose string.
+1) Add favorites: last 3 search (3 most popular search) locations. Possible place: uitableview in SearchVC
+2) Redo layout for iPad class size.
 
-Please revise the relevant purpose string in your app’s Info.plist file to specify why the app is requesting access to the user's location. You can modify your app's Info.plist file using the property list editor in Xcode.
-
-
-2) Location denied scenario: prevent hangup -> move to search vc
- "gps" button -> display alert "location permission needed"
-
-3) SearchVC:
- filter away results not begining (containing?) with first 3...4 search str chars

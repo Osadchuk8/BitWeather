@@ -59,7 +59,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate
     
     func readSavedPreferences(){
         let prefs = UserDefaults.standard
-        let stamp = UnitsHelper.dateStrFull(utime: (prefs.object(forKey: "time_stamp") as? Double) ?? 0.0 )
+        //let stamp = UnitsHelper.dateStrFull(utime: (prefs.object(forKey: "time_stamp") as? Double) ?? 0.0 )
         //print("--userdefaults last write: \(stamp)")
         if let unitSysStr = prefs.object(forKey: "unit_system") as? String, let unitSys = UnitsHelper.UnitSystems(rawValue: unitSysStr) {
             AppShared.unitSystem = unitSys

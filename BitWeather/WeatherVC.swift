@@ -142,10 +142,7 @@ class WeatherVC: UIViewController {
         }
         
     }
-    
-    //    override func viewDidDisappear(_ animated: Bool) {
-    //        super.viewDidDisappear(true)
-    //    }
+
     
     
     func startRequestTimer(){
@@ -609,7 +606,7 @@ class WeatherVC: UIViewController {
 
 
 
-// use collection view ?
+// TODO: use collection view.
 class ForecastView: UIView {
     
     

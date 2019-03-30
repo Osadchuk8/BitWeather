@@ -315,7 +315,7 @@ class WeatherServiceDarksky {
         
         public enum Condition: String {
             //evaluated condition
-            //sleet: snow+rain
+            //sleet= snow+rain
             case clear, partly_cloudy, cloudy, fog, wind, light_rain, light_snow, rain, snow, sleet, hail, freezing_rain
         }
         
@@ -331,7 +331,7 @@ class WeatherServiceDarksky {
         }
         
         public struct Currently{
-            // ["currently"] -> [String:Any]
+            // ["currently"] : [String:Any]
             //currently block doesn't have precipAccumulation field
             public var time = 0.0
             public var summary = ""
@@ -352,7 +352,7 @@ class WeatherServiceDarksky {
         
         
         public struct Daily{
-            // ["daily"] -> [[String:Any]]
+            // ["daily"] : [[String:Any]]
             public var time = 0.0
             public var summary = ""
             public var icon:DSIcons? = .partly_cloudy_day
@@ -371,7 +371,7 @@ class WeatherServiceDarksky {
         }
         
         public struct Hourly{
-            // ["hourly"] -> [[]String:Any]
+            // ["hourly"] : [[String:Any]]
             public var time = 0.0
             public var summary = ""
             public var icon:DSIcons? = .partly_cloudy_day

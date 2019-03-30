@@ -159,7 +159,7 @@ class UnitsHelper {
     class func hourMinutesFormattedFrom(unixTime: Double) -> String {
         let date = Date(timeIntervalSince1970: unixTime)
         let formatter = DateFormatter()
-        formatter.dateFormat = "h:mma"
+        formatter.dateFormat = "h:mma" //  formatter.locale may override this format
         return formatter.string(from: date)
     }
     
@@ -167,7 +167,7 @@ class UnitsHelper {
         let date = Date(timeIntervalSince1970: unixTime)
         let formatter = DateFormatter()
         formatter.timeZone = zone
-        formatter.dateFormat = "h:mma"
+        formatter.dateFormat = "h:mma" //  formatter.locale may override this format
         return formatter.string(from: date)
     }
     

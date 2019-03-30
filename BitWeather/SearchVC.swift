@@ -50,7 +50,7 @@ class SearchVC: UIViewController, UISearchBarDelegate {
         searchBar.returnKeyType = .done
         
         
-        //TODO #IF_IOS9*  ??
+        //TODO #IF_IOS9*
         let scopeBarContainer: UIView? = searchBar.subviews.first?.subviews.first
         if let _ = scopeBarContainer?.subviews.first(where: { $0.isKind(of: UISegmentedControl.self) } ) {
             scopeBarContainer?.isHidden = true
@@ -78,8 +78,6 @@ class SearchVC: UIViewController, UISearchBarDelegate {
         }
         AppShared.needsRefresh = false
         self.dismiss(animated: true, completion: nil)
-//        let vc = storyboard?.instantiateViewController(withIdentifier: "weather_vc") as! WeatherVC
-//        self.present(vc, animated: true, completion: nil)
         
     }
     
@@ -116,7 +114,7 @@ class SearchVC: UIViewController, UISearchBarDelegate {
                     return
                 }
                 
-                // key pString: 'Montreal, Qc, Canada'
+                // key pString like: 'Montreal, Qc, Canada'
                 let pString = locality + ", " + area + ", " + country
                 self.placeMarkDict.updateValue(pMark, forKey: pString)
                 self.tableView.reloadData()
@@ -148,10 +146,6 @@ extension SearchVC: UITableViewDelegate, UITableViewDataSource{
         
         // Reverse order to feed the table: most recent up. Limiting to 5 most recent.
         cell?.textLabel?.text = Array(placeMarkDict.keys)[placeMarkDict.count - 1 - indexPath.row]
-        
-        //(StringPlaceArr[(StringPlaceArr.count-1)-indexPath.row]).keys.first
-        
-        //resultStrings[ (resultStrings.count - 1) -  indexPath.row]
         return cell!
     }
     
