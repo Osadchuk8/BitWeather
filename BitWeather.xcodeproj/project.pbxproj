@@ -23,6 +23,7 @@
 		07A0A69C1FD10C3800ACD614 /* JustWeatherUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07A0A69B1FD10C3800ACD614 /* JustWeatherUITests.swift */; };
 		07C96ACD1FEB68CC00153ABF /* ConnectivityHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07C96ACC1FEB68CC00153ABF /* ConnectivityHelper.swift */; };
 		07E9434421F8234E000970FF /* AppShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07E9434321F8234E000970FF /* AppShared.swift */; };
+		9636440D224EF10C000754A4 /* Readme.md in Resources */ = {isa = PBXBuildFile; fileRef = 9636440C224EF10C000754A4 /* Readme.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -65,6 +66,7 @@
 		07A0A69D1FD10C3800ACD614 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		07C96ACC1FEB68CC00153ABF /* ConnectivityHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConnectivityHelper.swift; sourceTree = "<group>"; };
 		07E9434321F8234E000970FF /* AppShared.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShared.swift; sourceTree = "<group>"; };
+		9636440C224EF10C000754A4 /* Readme.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Readme.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -116,6 +118,7 @@
 			isa = PBXGroup;
 			children = (
 				07A0A67B1FD10C3800ACD614 /* AppDelegate.swift */,
+				9636440C224EF10C000754A4 /* Readme.md */,
 				073A3C4421F655FA00DB140D /* SearchVC.swift */,
 				078F9A1B20215CEA0083F83C /* todo.txt */,
 				077057A721953BB90072E769 /* WeatherServiceDarksky.swift */,
@@ -262,6 +265,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9636440D224EF10C000754A4 /* Readme.md in Resources */,
 				078F9A1C20215CEA0083F83C /* todo.txt in Resources */,
 				0758E92D2005B95E002A6374 /* Images.xcassets in Resources */,
 				07A0A6861FD10C3800ACD614 /* LaunchScreen.storyboard in Resources */,
